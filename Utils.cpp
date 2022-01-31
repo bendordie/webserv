@@ -148,6 +148,33 @@ std::string Utils::getFileLastModTime(const std::string& file_path) {
     return tmbuf;
 }
 
+std::pair<char*, size_t> Utils::readFile(std::string file_path) {
+    std::ifstream   stream;
+    char            *buff;
+
+    stream.open(file_path, std::ifstream::binary);
+    if (stream.is_open()) {
+        try {
+            struct stat fi;
+
+            bzero(&fi, sizeof(fi));
+            stat(file_path.c_str(), &fi);
+            std::cout << "STAT FILE SIZE: " << fi.st_size << std::endl;
+            buff = new char[fi.st_size];
+            *buff = 0;
+            stream.read(buff, fi.st_size);
+            stream.close();
+        }
+        catch (std::exception &ex) {
+            std::cout << ex.what() << std::endl;
+        }
+    } else {
+        std::cout << "Can't open file" << std::endl;
+        return std::make_pair((char*)NULL, 0);
+    }
+    return std::make_pair(buff, stream.gcount());;
+}
+
 Utils::t_find_key Utils::findKey(std::map<std::string, std::string>::const_iterator begin,
                           std::map<std::string, std::string>::const_iterator end, std::string value) {
     for (; begin != end; ++begin) {

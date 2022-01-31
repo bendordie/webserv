@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 //                          "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36\n"
 //                          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b\r\n\r\n");
 
-        sprintf(sendline, "PUT /456/ HTTP/1.1\n"
+        sprintf(sendline, "GET / HTTP/1.1\n"
                           "Host: 127.0.0.1\n"
                           "Connection: keep-alive\n"
                           "Cache-Control: max-age=0\n"
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
                           "Sec-Fetch-User: ?1\n"
                           "Sec-Fetch-Dest: document\n"
                           "Accept-Encoding: gzip, deflate, br\n"
-                          "Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\n\n");
+                          "Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\n");
 //                          "GET /favicon.ico HTTP/1.1\n"
 //                          "Host: localhost\n"
 //                          "Connection: keep-alive\n"

@@ -33,7 +33,7 @@ public:
     const int&                      getSocket() const;
     const std::vector<uint8_t>&     getData() const;
     const std::vector<uint8_t>&     getResponse() const;
-    const struct timeval            getConnectionTime() const;
+    const struct timeval&           getLastActionTime() const;
     const int&                      getRequestType() const;
     const std::string&              getRequestHeader() const;
     const std::string&              getRequestPath() const;
@@ -50,9 +50,10 @@ public:
     void                setTimeout(bool value);
     void                setRequestType(int value);
     void                setRequestHeader(const char *begin, const char* end);
-    void                setRequestPath(const char *request_line);
+    void                setRequestPath(const std::string &path);
     void                setPostContentLen(const long long int &length);
     void                setPostContentType(const std::string &type);
+    void                setLastActionTime(const struct timeval &tv);
 
     void                writeData(const char *begin, const char *end);
     void                clearData();
@@ -74,7 +75,7 @@ private:
     bool                        _keep_alive;
     bool                        _processed;
     bool                        _timeout;
-    struct timeval              _time_connected;
+    struct timeval              _time_last_action;
 
 };
 

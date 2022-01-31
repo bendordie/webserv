@@ -16,8 +16,6 @@ Client::Client() : _socket(-1) {
     count++;
     _id = count;
     _data_recieved.reserve(4096);
-//    _data_recieved = "";
-//    _ready_to_send = false;
     _keep_alive = false;
     _processed = false;
     _timeout = false;
@@ -25,8 +23,8 @@ Client::Client() : _socket(-1) {
     _request_header = "";
     _request_path = "";
 
-    bzero(&_time_connected, sizeof(_time_connected));
-    if (gettimeofday(&_time_connected, NULL) < 0)
+    bzero(&_time_last_action, sizeof(_time_last_action));
+    if (gettimeofday(&_time_last_action, NULL) < 0)
         std::cout << "Client time error" << std::endl;
 }
 
@@ -34,8 +32,6 @@ Client::Client(int socket) : _socket(socket) {
     count++;
     _id = count;
     _data_recieved.reserve(4096);
-//    _data_recieved = "";
-//    _ready_to_send = false;
     _keep_alive = false;
     _processed = false;
     _timeout = false;
@@ -43,8 +39,8 @@ Client::Client(int socket) : _socket(socket) {
     _request_header = "";
     _request_path = "";
 
-    bzero(&_time_connected, sizeof(_time_connected));
-    if (gettimeofday(&_time_connected, NULL) < 0)
+    bzero(&_time_last_action, sizeof(_time_last_action));
+    if (gettimeofday(&_time_last_action, NULL) < 0)
         std::cout << "Client time error" << std::endl;
 }
 
@@ -56,7 +52,7 @@ const int &Client::getSocket() const { return _socket; }
 
 const std::vector<uint8_t> &Client::getData() const { return _data_recieved; }
 
-const struct timeval Client::getConnectionTime() const { return _time_connected; }
+const struct timeval& Client::getLastActionTime() const { return _time_last_action; }
 
 const int &Client::getRequestType() const { return _request_type; }
 
@@ -96,27 +92,15 @@ void Client::setRequestType(int value) { _request_type = value; }
 
 void Client::setRequestHeader(const char *begin, const char* end) {
     _request_header.assign(begin, end);
-
 }
 
-void Client::setRequestPath(const char *request_line) {
-    const char    *first_space_pos;
-    const char    *second_space_pos;
-
-    if (request_line) {
-        first_space_pos = strchr(request_line, ' ');
-        if (!first_space_pos || !(first_space_pos + 1))
-            return;
-        second_space_pos = strchr(first_space_pos + 1, ' ');
-        if (!second_space_pos)
-            return;
-        _request_path.assign(first_space_pos + 1, second_space_pos);
-    }
-}
+void Client::setRequestPath(const std::string &path) { _request_path = path; }
 
 void Client::setPostContentLen(const long long int &length) { _post_content_len = length; }
 
 void Client::setPostContentType(const std::string &type) { _post_content_type = type; }
+
+void Client::setLastActionTime(const struct timeval &tv) { _time_last_action = tv; }
 
 void Client::writeData(const char *begin, const char *end) {
   for (; begin != end; ++begin) {

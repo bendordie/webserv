@@ -149,7 +149,6 @@ std::string Server::makeAutoindexPage(std::string path) {
     res2 += "</h1><hr><pre><a href=\"../\">../</a>\n";
     std::list<struct dirent>  content;
     Utils::getDirContent(path.c_str(), content);
-    std::cout << "PAAAAATH: " << path << std::endl;
     for (std::list<struct dirent>::iterator it = content.begin(); it != content.end(); ++it) {
         if (!strcmp(it->d_name, ".") || !strcmp(it->d_name, ".."))
             continue;
@@ -162,7 +161,6 @@ std::string Server::makeAutoindexPage(std::string path) {
 }
 
 std::string Server::makeAutoindexLine(std::list<struct dirent>::iterator file, const std::string &path) {
-    std::cout << "makeAutoindexLine" << std::endl;
     struct stat fi;
     std::string res = "<a href=\"";
     std::string size;
@@ -172,14 +170,10 @@ std::string Server::makeAutoindexLine(std::list<struct dirent>::iterator file, c
     int         tab_offset = strlen(file->d_name) / 8;
 
     stat(curr_path.c_str(), &fi);
-    std::cout << "FILENAME: " << file->d_name << std::endl;
     if (file->d_type == DT_DIR) {
-        std::cout << "Eto papka" << std::endl;
         name += "/";
         size = "-";
     } else {
-        std::cout << "Eto file" << std::endl;
-        std::cout << "size: " << fi.st_size << std::endl;
         size = std::to_string(fi.st_size);
     }
     if (tab_offset >= strlen(tabs))
@@ -194,6 +188,7 @@ Client *Server::getClient(int client_sock) {
         if ((*it)->getSocket() == client_sock)
             return (*it);
     }
+
     return NULL;
 }
 
@@ -225,6 +220,7 @@ int Server::setupServer() {
         exit(errno);
     }
     _max_fd = serv_sock;
+
     return serv_sock;
 }
 
@@ -234,6 +230,7 @@ bool Server::addNewClient(int client_sock) {
             return false;
     }
     _clients.push_back(new Client(client_sock));
+
     return true;
 }
 
@@ -304,58 +301,17 @@ std::string Server::defineContentType(const std::string& file_path) const {
         std::cout << "Content-Type has been set to text\\html" << std::endl;
         return "text/html";
     }
-
-}
-
-bool Server::readFile(std::string file_path) {
-    std::ifstream   stream;
-
-    stream.open(file_path, std::ifstream::binary);
-    if (stream.is_open()) {
-        try {
-            struct stat fi;
-            std::string file_time;
-            char*       buff; //= new char[MAX_FILESIZE];
-
-            bzero(&fi, sizeof(fi));
-            stat(file_path.c_str(), &fi);
-            std::cout << "STAT SIZE: " << fi.st_size << std::endl;
-            buff = new char[fi.st_size + 1];
-            *buff = 0;
-            stream.read(buff, fi.st_size + 1);
-//            buff[fi.st_size] = '\0';
-            _response_data = buff;
-            _response_data_size = (int)stream.gcount();
-
-            std::cout << "File size: " << _response_data_size << std::endl;
-
-            stream.close();
-
-            //            delete buff;
-            //            buff = 0;
-        }
-        catch (std::exception &ex) {
-            error(ex.what());
-        }
-    } else {
-        std::cout << "Can't open file" << std::endl;
-        _response_data = NULL;
-        _response_data_size = 0;
-        _response_full_size = 0;
-        return false;
-    }
-    return true;
 }
 
 void Server::makeGetResponse(Client *client) {
-    int             path_exist = false;
-    int             path_access = false;
-    bool            read_ok;
-    std::string     request_path = client->getRequestPath();
-    const char*     file_path;
-    std::string     file_time;
-    std::string     content_type;
-    std::string     response_status;
+    int                         path_exist = false;
+    int                         path_access = false;
+    std::string                 request_path = client->getRequestPath();
+    const char*                 file_path;
+    std::string                 file_time;
+    std::string                 content_type;
+    std::string                 response_status;
+    std::pair<char*, size_t>    file_data;
 
     std::cout << "Path requested: " << request_path << std::endl;
 
@@ -378,9 +334,7 @@ void Server::makeGetResponse(Client *client) {
                 content_type = "text/html";
                 file_time = Utils::getTime();
                 std::string autoindex_page = makeAutoindexPage("./");
-                std::cout << "autoindex page: " << autoindex_page << std::endl;
                 size_t autoindex_size = autoindex_page.size();
-                std::cout << "autoindex size: " << autoindex_size << std::endl;
                 _response_data = new char[autoindex_size];
                 _response_data_size = autoindex_size;
                 std::memcpy(_response_data, autoindex_page.c_str(), autoindex_size);
@@ -462,8 +416,11 @@ void Server::makeGetResponse(Client *client) {
         }
     }
     std::cout << "result path: " << file_path << std::endl;
-    read_ok = readFile(file_path);
-    if (!read_ok) {
+    file_data = Utils::readFile(file_path);
+    if (file_data.first) {
+        _response_data = file_data.first;
+        _response_data_size = file_data.second;
+    } else {
         std::cout << "Can't read file" << std::endl;
         response_status = "204 NO CONTENT";
     }
@@ -512,12 +469,13 @@ void Server::makePostResponse(Client *client) {
 
 void Server::makeDeleteResponse(Client *client) {
 
-    bool        path_exist, remove_ok, read_ok;
-    std::string path = "." + client->getRequestPath();
-    std::string response_status;
-    std::string html_path;
-    std::string file_time;
-    std::string content_type;
+    bool                        path_exist, remove_ok; //, read_ok;
+    std::string                 path = "." + client->getRequestPath();
+    std::string                 response_status;
+    std::string                 html_path;
+    std::string                 file_time;
+    std::string                 content_type;
+    std::pair<char*, size_t>    file_data;
 
     std::cout << "Path DELETE requested: " << path << std::endl;
     path_exist = !access(path.c_str(), F_OK);
@@ -539,8 +497,11 @@ void Server::makeDeleteResponse(Client *client) {
         response_status = "404 NOT FOUND";
     }
     file_time = Utils::getFileLastModTime(html_path);
-    read_ok = readFile(html_path);
-    if (!read_ok) {
+    file_data = Utils::readFile(html_path);
+    if (file_data.first) {
+        _response_data = file_data.first;
+        _response_data_size = file_data.second;
+    } else {
         std::cout << "Can't read file" << std::endl;
         response_status = "204 NO CONTENT";
     }
@@ -548,12 +509,6 @@ void Server::makeDeleteResponse(Client *client) {
     makeResponseHeader(response_status, content_type, file_time);
     _response_full_size = _response_header.size() + _response_data_size;
 }
-
-
-
-//void Server::makeResponse(const std::vector<std::string> &header) {
-//    makeGetResponse(header[0]);
-//}
 
 bool Server::handlePostData(Client *client, const char *begin, const char *end) {
 
@@ -623,9 +578,50 @@ bool Server::handlePostHeader(Client *client) {
     return len_ok && type_ok;
 }
 
-//bool Server::handleDelete(Client *client) {
-//
-//}
+std::string Server::extractRequestPath(const char *buffer) {
+    std::string     result_path;
+    const char      *first_space_pos;
+    const char      *second_space_pos;
+
+    if (buffer) {
+        first_space_pos = strchr(buffer, ' ');
+        if (!first_space_pos || !(first_space_pos + 1))
+            return "";
+        second_space_pos = strchr(first_space_pos + 1, ' ');
+        if (!second_space_pos)
+            return "";
+        result_path.assign(first_space_pos + 1, second_space_pos);
+    }
+    return result_path;
+}
+
+int Server::countEmptyHeaderLines(const char *buffer, unsigned int request_type) {
+
+    int empty_ln = 0;
+
+    if (request_type != POST_RQST) {
+        if (buffer[0] == '\r') {
+            for (; empty_ln < BUFFSIZE && buffer[empty_ln] == '\r' && buffer[empty_ln + 1] == '\n'; empty_ln += 2) {}
+        }
+    }
+
+    return empty_ln;
+}
+
+unsigned Server::defineRequestType(const char *buffer) {
+    if (!strncmp(buffer, "GET", strlen("GET")))
+        return GET_RQST;
+    else if (!strncmp(buffer, "POST", strlen("POST")))
+        return POST_RQST;
+    else if (!strncmp(buffer, "DELETE", strlen("DELETE")))
+        return DELETE_RQST;
+    else
+        return UNKNOWN_RQST;
+}
+
+header_params Server::defineHeaderParams(const char *buffer) {
+
+}
 
 void Server::handleRequest(int client_sock, fd_set &curr_sock) {
 
@@ -633,64 +629,62 @@ void Server::handleRequest(int client_sock, fd_set &curr_sock) {
     size_t          bytes_read;
     std::string     msg = "";
     std::string     response;
+    std::string     request_path;
     Client          *client;
     size_t          header_size;
     char*           header_end;
     bool            get, post, del;
+    int             empty_ln;
+    unsigned        request_type;
 
     bytes_read = recv(client_sock, buffer, sizeof(buffer) - 1, 0);
     buffer[bytes_read] = '\0';
-
     if (bytes_read < 0) {
         std::cout << "Read socket: Error has been occurred" << std::endl;
         removeClient(client_sock, curr_sock);
         return;
     }
-
     if (bytes_read == 0) {
-        std::cout << "Client " << client->getSocket() << " has closed the connection" << std::endl;
+        std::cout << "Client " << client_sock << " has closed the connection" << std::endl;
         removeClient(client_sock, curr_sock);
         return;
     }
-
     if (!(client = getClient(client_sock))) {
         std::cout << "Error: getClient(): can't find client" << std::endl;
         removeClient(client_sock, curr_sock);
         return;
     }
 
-    int empty_ln = 0;
-    if (client->getRequestType() != POST_RQST) {
-        if (buffer[0] == '\r') {
-            for (; empty_ln < BUFFSIZE && buffer[empty_ln] == '\r' && buffer[empty_ln + 1] == '\n'; empty_ln += 2) {}
-        }
-    }
+    empty_ln = countEmptyHeaderLines(buffer, client->getRequestType()); // BUT IF DATA RECEIVED ?? AND IT CONTAINS /r/n
+    request_type = defineRequestType(buffer + empty_ln);
 
-    if ((get = !strncmp(buffer + empty_ln, "GET", strlen("GET")))
-    || (post = !strncmp(buffer + empty_ln, "POST", strlen("POST")))
-    || (del = !strncmp(buffer + empty_ln, "DELETE", strlen("DELETE")))) {
+    if (request_type) {
 
         header_end = strstr(buffer + empty_ln, "\r\n\r\n");
-        if (!header_end) {
-            header_end = buffer + bytes_read;
-            header_size = 0;
-        }
-        else {
+        if (header_end) {
+            std::cout << "END DETECTED" << std::endl;
             header_end += strlen("\r\n\r\n");
             header_size = header_end - buffer + empty_ln;
         }
+        else {
+            std::cout << "NO END" << std::endl;
+            header_end = buffer + bytes_read;
+            header_size = 0;
+        }
 
         client->setRequestHeader(buffer + empty_ln, header_end);
-        client->setRequestPath(buffer);
-        if (get) {
+        request_path = extractRequestPath(buffer);
+        client->setRequestPath(request_path);
+
+        if (request_type == GET_RQST) {
             std::cout << "GET REQUEST" << std::endl;
-            client->setRequestType(GET_RQST);
+            client->setRequestType(request_type);
             if (header_size != 0 && header_end < buffer + bytes_read)
                 client->writeData(header_end, buffer + bytes_read);
         }
-        else if (post) {
+        else if (request_type == POST_RQST) {
             std::cout << "POST REQUEST" << std::endl;
-            client->setRequestType(POST_RQST);
+            client->setRequestType(request_type);
             if (!handlePostHeader(client)) {
                 std::cout << "POST request header error" << std::endl;
                 removeClient(client_sock, curr_sock);
@@ -713,10 +707,9 @@ void Server::handleRequest(int client_sock, fd_set &curr_sock) {
                 }
             }
         }
-        else if (del) {
+        else if (request_type == DELETE_RQST) {
             std::cout << "DELETE REQUEST" << std::endl;
-            client->setRequestType(DELETE_RQST);
-//            handleDelete(client);
+            client->setRequestType(request_type);
         }
         else {
             std::cout << "Error: Request type" << std::endl;
@@ -729,15 +722,13 @@ void Server::handleRequest(int client_sock, fd_set &curr_sock) {
             removeClient(client_sock, curr_sock);
             return;
         }
-//        client->writeData(buffer, bytes_read);
-        // получить данные до лимита
+
     } else {
         std::cout << "BAD REQUEST" << std::endl;
-        // Отправить Bad Request
-        // закрыть соединение
+        removeClient(client_sock, curr_sock);
+        return;
     }
 
-//    client->writeData(buffer, bytes_read);
     client->setProcessed(false);
     std::cout << "Client " << client->getSocket() << " bytes read: " << bytes_read << std::endl;
 }
@@ -843,82 +834,70 @@ void Server::sendResponse(int client_sock, fd_set& curr_sock, fd_set& write_sock
     }
 }
 
-void Server::addClientsToFdSet(fd_set &set) {
+void Server::addClientsToWriteSet(fd_set &write_sock) {
     for (std::list<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
         if (!(*it)->isProcessed()) // && !(*it)->getData().empty())  mb it's excess ??
-            FD_SET((*it)->getSocket(), &set);
+            FD_SET((*it)->getSocket(), &write_sock);
     }
 }
 
 void* Server::checkClientsTimeout(void *data) {
-    t_timeout_check     *check_tm = static_cast<t_timeout_check*>(data);
+    t_timeout_data     *timeout_data = static_cast<t_timeout_data*>(data);
     struct timeval      tv;
 
     bzero(&tv, sizeof(tv));
     for (;true;) {
         usleep(CHECKER_TIMEOUT_DELAY_USEC);
         gettimeofday(&tv, NULL);
-        for (std::list<Client*>::iterator it = check_tm->clients->begin(); it != check_tm->clients->end(); ++it) {
-            if (tv.tv_sec - (*it)->getConnectionTime().tv_sec >= CLIENT_TIMEOUT_DELAY_SEC) {
-                pthread_mutex_lock(check_tm->mutex);
+        for (std::list<Client*>::iterator it = timeout_data->clients->begin(); it != timeout_data->clients->end(); ++it) {
+            if (tv.tv_sec - (*it)->getLastActionTime().tv_sec >= CLIENT_TIMEOUT_DELAY_SEC) {
+                pthread_mutex_lock(timeout_data->mutex);
                 int client_sock = (*it)->getSocket();
                 std::cout << "Client " << client_sock << " timeout" << std::endl;
                 std::cout << "Closing " << client_sock << " connection..." << std::endl;
                 delete *it;
-                check_tm->clients->erase(it);
+                timeout_data->clients->erase(it);
                 close(client_sock);
-                FD_CLR(client_sock, check_tm->curr_sock);
-                pthread_mutex_unlock(check_tm->mutex);
+                FD_CLR(client_sock, timeout_data->curr_sock);
+                pthread_mutex_unlock(timeout_data->mutex);
             }
         }
     }
 }
 
-void Server::removeTimeoutClients(fd_set &curr_sock) {
-    for (std::list<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-        if ((*it)->isTimeout()) {
-            std::cout << "Closing " << (*it)->getSocket() << " connection..." << std::endl;
-            removeClient((*it)->getSocket(), curr_sock);
-        }
-    }
+void Server::initTimeoutThread(pthread_t **timeout_thread, t_timeout_data *data, fd_set *curr_sock) {
+    *timeout_thread = new pthread_t;
+
+    data->curr_sock = curr_sock;
+    data->mutex = new t_mutex;
+    data->clients = &_clients;
+    pthread_create(*timeout_thread, 0, &Server::checkClientsTimeout, data);
+    pthread_mutex_init(data->mutex, NULL);
 }
 
-void Server::removeTimeoutClients2(fd_set &curr_sock) {
-    struct timeval      tv;
+int Server::countReadySockets(fd_set *read_sock, fd_set *write_sock) {
+    int num_ready_sock = 0;
 
-    bzero(&tv, sizeof(tv));
-    gettimeofday(&tv, NULL);
-    for (std::list<Client*>::iterator tmp, it = _clients.begin(); it != _clients.end(); ++it) {
-        if (tv.tv_sec - (*it)->getConnectionTime().tv_sec >= CLIENT_TIMEOUT_DELAY_SEC) {
-            tmp = it;
-            ++it;
-            std::cout << "---------------------------------------------------------------------------" << std::endl;
-            std::cout << "Client " << (*tmp)->getSocket() << " timeout" << std::endl;
-            std::cout << "Closing " << (*tmp)->getSocket() << " connection..." << std::endl;
-            removeClient((*tmp)->getSocket(), curr_sock);
-            std::cout << "---------------------------------------------------------------------------" << std::endl;
-        }
+    for (int i = 0; i <= _max_fd; ++i) {
+        if (FD_ISSET(i, read_sock) || FD_ISSET(i, write_sock))
+            num_ready_sock++;
     }
+    return num_ready_sock;
 }
 
 bool Server::start() {
 
     int             client_socket, prev_sock = 0, num_ready_sock = 0;
     fd_set          curr_sock, read_sock, write_sock;
-    pthread_t       *check_timeout_thread;
-    t_timeout_check check_tm;
+    pthread_t       *timeout_thread;
+    t_timeout_data  timeout_data;
 
-    check_timeout_thread = new pthread_t;
-    check_tm.curr_sock = &curr_sock;
-    check_tm.mutex = new t_mutex;
-    check_tm.clients = &_clients;
-    pthread_create(check_timeout_thread, 0, &Server::checkClientsTimeout, &check_tm);
-    pthread_mutex_init(check_tm.mutex, NULL);
     _socket = setupServer();
     FD_ZERO(&curr_sock);
     FD_SET(_socket, &curr_sock);
     write_sock = read_sock = curr_sock;
-    for (int i = 0;;i++) {
+    initTimeoutThread(&timeout_thread, &timeout_data, &curr_sock);
+    for (;;) {
 
         { // system debug
             sleep(DEBUG_DELAY_SEC);
@@ -930,19 +909,15 @@ bool Server::start() {
             std::cout << "num ready sock: " << num_ready_sock << std::endl;
         }
 
-        pthread_mutex_lock(check_tm.mutex);
+        pthread_mutex_lock(timeout_data.mutex);
         read_sock = curr_sock;
         FD_ZERO(&write_sock);
-        addClientsToFdSet(write_sock);
+        addClientsToWriteSet(write_sock);
         if (select(_max_fd + 1, &read_sock, &write_sock, 0, 0) < 0) {
             perror("Select error");
             exit(errno);
         }
-        num_ready_sock = 0;
-        for (int i = 0; i <= _max_fd; ++i) {
-            if (FD_ISSET(i, &read_sock) || FD_ISSET(i, &write_sock))
-                num_ready_sock++;
-        }
+        num_ready_sock = countReadySockets(&read_sock, &write_sock);
         std::cout << "num ready sock after: " << num_ready_sock << std::endl;
         std::cout << "" << std::endl;
         for (int fd = 0; fd <= _max_fd; ++fd) {
@@ -974,9 +949,8 @@ bool Server::start() {
                 break;
             }
         }
-        pthread_mutex_unlock(check_tm.mutex);
-//        removeTimeoutClients2(curr_sock);
+        pthread_mutex_unlock(timeout_data.mutex);
     }
-    pthread_join(*check_timeout_thread, 0);
+    pthread_join(*timeout_thread, 0);
 }
 

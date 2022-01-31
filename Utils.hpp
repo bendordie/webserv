@@ -22,19 +22,21 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <iostream>
+#include <fstream>
 
 namespace Utils {
 
     typedef std::map<std::string, std::string>::const_iterator t_find_key;
 
-    std::vector<std::string> split(std::string str, char ch);
-    std::string              getTime();
-    std::string              getExtension(const std::string& file_name);
-    bool                     searchFileInDir(const char* dir_path, const char* file_name);
-    bool                     isPathAccessed(const std::string &path);
-    bool                     getDirContent(const char* dir_path, std::list<struct dirent> &content);
-    std::string              getFileLastModTime(const std::string &file_path);
-    bool                     isPathExist(const std::string &path);
+    std::vector<std::string>    split(std::string str, char ch);
+    std::string                 getTime();
+    std::string                 getExtension(const std::string& file_name);
+    bool                        searchFileInDir(const char* dir_path, const char* file_name);
+    bool                        isPathAccessed(const std::string &path);
+    bool                        getDirContent(const char* dir_path, std::list<struct dirent> &content);
+    std::string                 getFileLastModTime(const std::string &file_path);
+    bool                        isPathExist(const std::string &path);
+    std::pair<char*, size_t>    readFile(std::string file_path);
 
     t_find_key
     findKey(std::map<std::string, std::string>::const_iterator begin, std::map<std::string,

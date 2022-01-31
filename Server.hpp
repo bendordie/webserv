@@ -35,12 +35,13 @@
 #include "Client.hpp"
 #include "ErrPage.hpp"
 
-#define BUFFSIZE    4096
-#define MAX_BODY    100000000 // 100MB
-#define GET_RQST    1
-#define POST_RQST   2
-#define DELETE_RQST 3
-#define END_LEN     4
+#define BUFFSIZE        4096
+#define MAX_BODY        100000000 // 100MB
+#define UNKNOWN_RQST    0
+#define GET_RQST        1
+#define POST_RQST       2
+#define DELETE_RQST     3
+#define END_LEN         4
 //#define HTTP_200    "HTTP/1.1 200 OK\n"
 #define HTTP_200    200
 #define HTTP_404    404
@@ -56,11 +57,11 @@
 
 typedef pthread_mutex_t t_mutex;
 
-typedef struct  s_timeout_check {
+typedef struct  s_timeout_data {
     std::list<Client*>  *clients;
     fd_set              *curr_sock;
     t_mutex             *mutex;
-}               t_timeout_check ;
+}               t_timeout_data;
 
 class Server {
 
@@ -79,43 +80,37 @@ private:
     int                         acceptNewConnection();
     void                        initContentTypes();
     void                        initIndexPages();
-//    void                        initErrPages();
+    void                        initTimeoutThread(pthread_t **timeout_thread, t_timeout_data *data, fd_set *curr_sock);
     void                        handleRequest(int client_sock, fd_set &curr_sock);
     void                        sendResponse(int client_sock, fd_set &curr_sock, fd_set &write_sock);
     bool                        addNewClient(int client_sock);
     bool                        isKeepAlive(const std::vector<std::string> &data_lines);
     void                        removeClient(int client_sock, fd_set &curr_sock);
-    void                        removeTimeoutClients(fd_set &curr_sock);
-    void                        removeTimeoutClients2(fd_set &curr_sock);
-    void                        addClientsToFdSet(fd_set &set);
+    std::string                 extractRequestPath(const char *buffer);
+    int                         countEmptyHeaderLines(const char *buffer, unsigned request_type);
+    unsigned                    defineRequestType(const char *buffer);
+    std::pair<const char*, size_t>               defineHeaderEdge(const char *buffer);
+    void                        addClientsToWriteSet(fd_set &write_sock);
+    int                         countReadySockets(fd_set *read_sock, fd_set *write_sock);
     void                        error(std::string err_str);
-    bool                        readFile(std::string file_path);
     Client*                     getClient(int client_sock);
-    void                        makeResponse(const std::vector<std::string> &header);
     static void*                checkClientsTimeout(void *data);
-//    void                        loadErrPage(int code);
-//    std::string                 makeErrorPage(int code) const;
     void                        makeResponseHeader(const std::string &status, const std::string &content_type, const std::string &file_time);
     void                        makeGetResponse(Client *client);
     void                        makePostResponse(Client *client);
     void                        makeDeleteResponse(Client *client);
-    void                        makeBadResponse();
     bool                        handlePostData(Client *client, const char *begin, const char *end);
     bool                        handlePostHeader(Client *client);
-    bool                        handleDelete(Client *client);
     std::string                 makeAutoindexPage(std::string path);
     std::string                 makeAutoindexLine(std::list<struct dirent>::iterator file, const std::string &path);
-    const std::string&          getIndex();
-    std::vector<uint8_t>        ifPost(std::vector<std::string> msg_lines) const;
-    std::vector<uint8_t>        ifDelete(std::vector<std::string> msg_lines) const;
-    std::string                 badRequest(int code) const;
     std::string                 defineContentType(const std::string &file_path) const;
+
+
 
     int                                     _socket;
     int                                     _max_fd;
     int                                     _port;
     int                                     _backlog;
-    std::string                             _autoindex_path;
     char*                                   _response_data;
     int                                     _response_data_size;
     int                                     _response_full_size;
@@ -126,8 +121,7 @@ private:
     std::string                             _name;
     std::list<Client*>                      _clients;
     std::map<std::string, std::string>      _content_type;
-    std::map<int, std::string>              _err_page;
-    int                                     _max_body_size;
+    long                                    _max_body_size;
 
 };
 
