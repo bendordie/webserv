@@ -664,7 +664,7 @@ void Server::handleRequest(int clientSocket, fd_set &curr_sock) {
     size_t          headerSize;
     char            *headerEnd;
     bool            get, post, del, receiveFailed;
-    int             emptyHeaderLinesNum;
+    int             numEmptyHeaderLines;
     unsigned        requestType;
 
     receiveFailed = !receiveDataFromClient(buffer, clientSocket, bytesRead);
@@ -678,13 +678,13 @@ void Server::handleRequest(int clientSocket, fd_set &curr_sock) {
         return;
     }
 
-    emptyHeaderLinesNum = countEmptyHeaderLines(buffer, client->getRequestType());
-    requestType = defineRequestType(buffer + emptyHeaderLinesNum);
+    numEmptyHeaderLines = countEmptyHeaderLines(buffer, client->getRequestType());
+    requestType = defineRequestType(buffer + numEmptyHeaderLines);
 
     if (requestType) {
 
-        defineHeaderEdge(buffer + emptyHeaderLinesNum, bytesRead, &headerEnd, headerSize);
-        client->setRequestHeader(buffer + emptyHeaderLinesNum, headerEnd);
+        defineHeaderEdge(buffer + numEmptyHeaderLines, bytesRead, &headerEnd, headerSize);
+        client->setRequestHeader(buffer + numEmptyHeaderLines, headerEnd);
         requestPath = extractRequestPath(buffer);
         client->setRequestPath(requestPath);
 
@@ -765,6 +765,12 @@ void Server::sendResponse(int client_sock, fd_set& curr_sock, fd_set& write_sock
         // 104 CONTINUE response
         return;
     }
+    std::cout << "*data.rbegin(): " << (int)(*data.rbegin()) << std::endl;
+    std::cout << "*data.rbegin() + 1: " << (int)(*(data.rbegin() + 1)) << std::endl;
+    std::cout << "*data.rbegin() + 2: " << (int)(*(data.rbegin() + 2)) << std::endl;
+    std::cout << "*data.rbegin() + 3: " << (int)(*(data.rbegin() + 3)) << std::endl;
+    std::cout << "*data.rbegin() + 100: " << (int)(*(data.rbegin() + 100)) << std::endl;
+    std::cout << "*data.rend() + 10: " << (int)(*(data.rend() + 10)) << std::endl;
 
 
 //    if (data.find("\r\n\r\n", data.length() - END_LEN) == std::string::npos
@@ -847,6 +853,7 @@ void Server::sendResponse(int client_sock, fd_set& curr_sock, fd_set& write_sock
 }
 
 void Server::addClientsToWriteSet(fd_set &write_sock) {
+    FD_ZERO(&write_sock);
     for (std::list<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
         if (!(*it)->isProcessed()) // && !(*it)->getData().empty())  mb it's excess ??
             FD_SET((*it)->getSocket(), &write_sock);
@@ -883,8 +890,8 @@ void Server::initTimeoutThread(pthread_t **timeout_thread, t_timeout_data *data,
     data->curr_sock = curr_sock;
     data->mutex = new t_mutex;
     data->clients = &_clients;
-    pthread_create(*timeout_thread, 0, &Server::checkClientsTimeout, data);
     pthread_mutex_init(data->mutex, NULL);
+    pthread_create(*timeout_thread, 0, &Server::checkClientsTimeout, data);
 }
 
 int Server::countReadySockets(fd_set *read_sock, fd_set *write_sock) {
@@ -897,18 +904,74 @@ int Server::countReadySockets(fd_set *read_sock, fd_set *write_sock) {
     return num_ready_sock;
 }
 
+void Server::handleSelectedFds(fd_set *curr_sock, fd_set *read_sock, fd_set *write_sock) {
+
+    int         clientSocket;
+    int         numReadySocket = 0;
+    static int  prevHandledSocket;
+
+    { // system debug
+        std::cout << "prev sock: " << prevHandledSocket << std::endl;
+//        std::cout << "num ready sock: " << numReadySocket << std::endl;
+    }
+
+    numReadySocket = countReadySockets(read_sock, write_sock);
+
+    { // system debug
+        std::cout << "num ready sock: " << numReadySocket << std::endl;
+        std::cout << "" << std::endl;
+    }
+
+    for (int fd = 0; fd <= _max_fd; ++fd) {
+        if (prevHandledSocket == _max_fd)
+            prevHandledSocket = 0;
+        if (numReadySocket > 1 && fd == prevHandledSocket)
+            continue;
+        if (FD_ISSET(fd, read_sock)) {
+            prevHandledSocket = fd;
+            if (fd == _socket) {
+                sleep(DEBUG_DELAY_SEC);
+                std::cout << "acceptNewConnection..." << std::endl << std::endl;
+                clientSocket = acceptNewConnection();
+                sleep(DEBUG_DELAY_SEC);
+                std::cout << "Socket " << clientSocket << " has been created" << std::endl;
+                FD_SET(clientSocket, curr_sock);
+                break;
+            } else {
+                sleep(DEBUG_DELAY_SEC);
+                std::cout << "handleRequest from " << fd << "..." << std::endl << std::endl;
+                handleRequest(fd, *curr_sock);
+                break;
+            }
+        } else if (FD_ISSET(fd, write_sock)) {
+            prevHandledSocket = fd;
+            sleep(DEBUG_DELAY_SEC);
+            std::cout << "sendResponse to " << fd << "..." << std::endl << std::endl;
+            sendResponse(fd, *curr_sock, *write_sock);
+            break;
+        }
+    }
+}
+
+void Server::initTimoutValue(struct timeval &tv, unsigned sec, unsigned usec) {
+    bzero(&tv, sizeof(tv));
+    tv.tv_sec = sec;
+    tv.tv_usec = usec;
+}
+
 bool Server::start() {
 
     int             client_socket, prev_sock = 0, num_ready_sock = 0;
     fd_set          curr_sock, read_sock, write_sock;
-    pthread_t       *timeout_thread;
-    t_timeout_data  timeout_data;
+    pthread_t       *timeoutThread;
+    t_timeout_data  timeoutThreadData;
+    struct timeval  selectTimeoutValue;
 
     _socket = setupServer();
     FD_ZERO(&curr_sock);
     FD_SET(_socket, &curr_sock);
     write_sock = read_sock = curr_sock;
-    initTimeoutThread(&timeout_thread, &timeout_data, &curr_sock);
+    initTimeoutThread(&timeoutThread, &timeoutThreadData, &curr_sock);
     for (;;) {
 
         { // system debug
@@ -917,52 +980,21 @@ bool Server::start() {
             std::cout << "***************************************************************************" << std::endl;
 //            std::cout << "i: " << i << std::endl;
             std::cout << "max fd: " << _max_fd << std::endl;
-            std::cout << "prev sock: " << prev_sock << std::endl;
-            std::cout << "num ready sock: " << num_ready_sock << std::endl;
+//            std::cout << "prev sock: " << prev_sock << std::endl;
+//            std::cout << "num ready sock: " << num_ready_sock << std::endl;
         }
 
-        pthread_mutex_lock(timeout_data.mutex);
+        pthread_mutex_lock(timeoutThreadData.mutex);
         read_sock = curr_sock;
-        FD_ZERO(&write_sock);
         addClientsToWriteSet(write_sock);
-        if (select(_max_fd + 1, &read_sock, &write_sock, 0, 0) < 0) {
+        initTimoutValue(selectTimeoutValue, CLIENT_TIMEOUT_DELAY_SEC, 0);
+        if (select(_max_fd + 1, &read_sock, &write_sock, 0, &selectTimeoutValue) < 0) {
             perror("Select error");
             exit(errno);
         }
-        num_ready_sock = countReadySockets(&read_sock, &write_sock);
-        std::cout << "num ready sock after: " << num_ready_sock << std::endl;
-        std::cout << "" << std::endl;
-        for (int fd = 0; fd <= _max_fd; ++fd) {
-            if (prev_sock == _max_fd)
-                prev_sock = 0;
-            if (num_ready_sock > 1 && fd == prev_sock)
-                continue;
-            if (FD_ISSET(fd, &read_sock)) {
-                prev_sock = fd;
-                if (fd == _socket) {
-                    sleep(DEBUG_DELAY_SEC);
-                    std::cout << "acceptNewConnection..." << std::endl << std::endl;
-                    client_socket = acceptNewConnection();
-                    sleep(DEBUG_DELAY_SEC);
-                    std::cout << "Socket " << client_socket << " has been created" << std::endl;
-                    FD_SET(client_socket, &curr_sock);
-                    break;
-                } else {
-                    sleep(DEBUG_DELAY_SEC);
-                    std::cout << "handleRequest from " << fd << "..." << std::endl << std::endl;
-                    handleRequest(fd, curr_sock);
-                    break;
-                }
-            } else if (FD_ISSET(fd, &write_sock)) {
-                prev_sock = fd;
-                sleep(DEBUG_DELAY_SEC);
-                std::cout << "sendResponse to " << fd << "..." << std::endl << std::endl;
-                sendResponse(fd, curr_sock, write_sock);
-                break;
-            }
-        }
-        pthread_mutex_unlock(timeout_data.mutex);
+        handleSelectedFds(&curr_sock, &read_sock, &write_sock);
+        pthread_mutex_unlock(timeoutThreadData.mutex);
     }
-    pthread_join(*timeout_thread, 0);
+    pthread_join(*timeoutThread, 0);
 }
 

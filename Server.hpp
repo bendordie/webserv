@@ -84,6 +84,7 @@ private:
     void                        initContentTypes();
     void                        initIndexPages();
     void                        initTimeoutThread(pthread_t **timeout_thread, t_timeout_data *data, fd_set *curr_sock);
+    void                        initTimoutValue(struct timeval &tv, unsigned sec, unsigned usec);
     void                        handleRequest(int clientSocket, fd_set &curr_sock);
     void                        sendResponse(int client_sock, fd_set &curr_sock, fd_set &write_sock);
     bool                        addNewClient(int client_sock);
@@ -104,6 +105,7 @@ private:
     void                        makeGetResponse(Client *client);
     void                        makePostResponse(Client *client);
     void                        makeDeleteResponse(Client *client);
+    void                        handleSelectedFds(fd_set *curr_sock, fd_set *read_sock, fd_set *write_sock);
     bool                        handlePostData(Client *client, const char *begin, const char *end);
     bool                        handlePostHeader(Client *client);
     std::string                 makeAutoindexPage(std::string path);
