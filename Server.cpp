@@ -188,7 +188,7 @@ Client *Server::getClient(int client_sock) {
         if ((*it)->getSocket() == client_sock)
             return (*it);
     }
-
+    std::cout << "Error: getClient(): can't find client" << std::endl;
     return NULL;
 }
 
@@ -619,97 +619,109 @@ unsigned Server::defineRequestType(const char *buffer) {
         return UNKNOWN_RQST;
 }
 
-header_params Server::defineHeaderParams(const char *buffer) {
+//header_params Server::defineHeaderParams(const char *buffer) {
+//
+//}
 
+bool Server::receiveDataFromClient(char *buffer, int clientSocket, size_t &bytesRead) {
+
+    bytesRead = recv(clientSocket, buffer, BUFFSIZE, 0);
+    buffer[bytesRead] = '\0';
+    if (bytesRead < 0) {
+        std::cout << "Read socket: Error has been occurred" << std::endl;
+        return false;
+    }
+    if (bytesRead == 0) {
+        std::cout << "Client " << clientSocket << " has closed the connection" << std::endl;
+        return false;
+    }
+    return true;
 }
 
-void Server::handleRequest(int client_sock, fd_set &curr_sock) {
+void Server::defineHeaderEdge(char *buffer, const size_t &bytesRead, char **headerEnd, size_t &headerSize) {
 
-    char            buffer[BUFFSIZE + 1];
-    size_t          bytes_read;
+    *headerEnd = strstr(buffer, "\r\n\r\n");
+    if (*headerEnd) {
+        std::cout << "END DETECTED" << std::endl;
+        *headerEnd += strlen("\r\n\r\n");
+        headerSize = *headerEnd - buffer;
+    }
+    else {
+        std::cout << "NO END" << std::endl;
+        *headerEnd = buffer + bytesRead;
+        headerSize = 0;
+    }
+}
+
+void Server::handleRequest(int clientSocket, fd_set &curr_sock) {
+
+    char            *buffer = new char[BUFFSIZE + 1];
+    size_t          bytesRead;
     std::string     msg = "";
     std::string     response;
-    std::string     request_path;
+    std::string     requestPath;
     Client          *client;
-    size_t          header_size;
-    char*           header_end;
-    bool            get, post, del;
-    int             empty_ln;
-    unsigned        request_type;
+    size_t          headerSize;
+    char            *headerEnd;
+    bool            get, post, del, receiveFailed;
+    int             emptyHeaderLinesNum;
+    unsigned        requestType;
 
-    bytes_read = recv(client_sock, buffer, sizeof(buffer) - 1, 0);
-    buffer[bytes_read] = '\0';
-    if (bytes_read < 0) {
-        std::cout << "Read socket: Error has been occurred" << std::endl;
-        removeClient(client_sock, curr_sock);
+    receiveFailed = !receiveDataFromClient(buffer, clientSocket, bytesRead);
+    if (receiveFailed) {
+        removeClient(clientSocket, curr_sock);
         return;
     }
-    if (bytes_read == 0) {
-        std::cout << "Client " << client_sock << " has closed the connection" << std::endl;
-        removeClient(client_sock, curr_sock);
-        return;
-    }
-    if (!(client = getClient(client_sock))) {
-        std::cout << "Error: getClient(): can't find client" << std::endl;
-        removeClient(client_sock, curr_sock);
+    client = getClient(clientSocket);
+    if (!client) {
+        removeClient(clientSocket, curr_sock);
         return;
     }
 
-    empty_ln = countEmptyHeaderLines(buffer, client->getRequestType()); // BUT IF DATA RECEIVED ?? AND IT CONTAINS /r/n
-    request_type = defineRequestType(buffer + empty_ln);
+    emptyHeaderLinesNum = countEmptyHeaderLines(buffer, client->getRequestType());
+    requestType = defineRequestType(buffer + emptyHeaderLinesNum);
 
-    if (request_type) {
+    if (requestType) {
 
-        header_end = strstr(buffer + empty_ln, "\r\n\r\n");
-        if (header_end) {
-            std::cout << "END DETECTED" << std::endl;
-            header_end += strlen("\r\n\r\n");
-            header_size = header_end - buffer + empty_ln;
-        }
-        else {
-            std::cout << "NO END" << std::endl;
-            header_end = buffer + bytes_read;
-            header_size = 0;
-        }
+        defineHeaderEdge(buffer + emptyHeaderLinesNum, bytesRead, &headerEnd, headerSize);
+        client->setRequestHeader(buffer + emptyHeaderLinesNum, headerEnd);
+        requestPath = extractRequestPath(buffer);
+        client->setRequestPath(requestPath);
 
-        client->setRequestHeader(buffer + empty_ln, header_end);
-        request_path = extractRequestPath(buffer);
-        client->setRequestPath(request_path);
-
-        if (request_type == GET_RQST) {
+        if (requestType == GET_RQST) {
             std::cout << "GET REQUEST" << std::endl;
-            client->setRequestType(request_type);
-            if (header_size != 0 && header_end < buffer + bytes_read)
-                client->writeData(header_end, buffer + bytes_read);
+            client->setRequestType(requestType);
+            if (headerSize != 0 && headerEnd < buffer + bytesRead)
+                client->writeData(headerEnd, buffer + bytesRead);
         }
-        else if (request_type == POST_RQST) {
+        else if (requestType == POST_RQST) {
             std::cout << "POST REQUEST" << std::endl;
-            client->setRequestType(request_type);
+            client->setRequestType(requestType);
             if (!handlePostHeader(client)) {
                 std::cout << "POST request header error" << std::endl;
-                removeClient(client_sock, curr_sock);
+                removeClient(clientSocket, curr_sock);
                 return;
             }
 
             { // system debug
-                std::cout << "header size: " << header_size << std::endl;
-                std::cout << "header end address: " << static_cast<void *>(header_end) << std::endl;
-                std::cout << "buffer + bytes_read address: " << static_cast<void *>(buffer + bytes_read) << std::endl;
+                std::cout << "header size: " << headerSize << std::endl;
+                std::cout << "header end address: " << static_cast<void *>(headerEnd) << std::endl;
+                std::cout << "buffer + bytes_read address: " << static_cast<void *>(buffer + bytesRead) << std::endl;
             }
 
-            if (header_size != 0 && header_end < buffer + bytes_read) {
+            if (headerSize != 0 && headerEnd < buffer + bytesRead) {
                 std::cout << "Prepare to handle POST data..." << std::endl;
-                if (!handlePostData(client, header_end, buffer + bytes_read)) {
-                    removeClient(client_sock, curr_sock);
+                if (!handlePostData(client, headerEnd, buffer + bytesRead)) {
+                    removeClient(clientSocket, curr_sock);
                     return;
                 } else {
                     std::cout << "Client " << client->getSocket() << " data has been successfully written" << std::endl;
                 }
             }
         }
-        else if (request_type == DELETE_RQST) {
+        else if (requestType == DELETE_RQST) {
             std::cout << "DELETE REQUEST" << std::endl;
-            client->setRequestType(request_type);
+            client->setRequestType(requestType);
         }
         else {
             std::cout << "Error: Request type" << std::endl;
@@ -718,19 +730,19 @@ void Server::handleRequest(int client_sock, fd_set &curr_sock) {
 
     } else if (client->getRequestType() == POST_RQST) {
         std::cout << "POST REQUEST DATA" << std::endl;
-        if (!handlePostData(client, buffer, buffer + bytes_read)) {
-            removeClient(client_sock, curr_sock);
+        if (!handlePostData(client, buffer, buffer + bytesRead)) {
+            removeClient(clientSocket, curr_sock);
             return;
         }
 
     } else {
         std::cout << "BAD REQUEST" << std::endl;
-        removeClient(client_sock, curr_sock);
+        removeClient(clientSocket, curr_sock);
         return;
     }
 
     client->setProcessed(false);
-    std::cout << "Client " << client->getSocket() << " bytes read: " << bytes_read << std::endl;
+    std::cout << "Client " << client->getSocket() << " bytes read: " << bytesRead << std::endl;
 }
 
 void Server::sendResponse(int client_sock, fd_set& curr_sock, fd_set& write_sock) {

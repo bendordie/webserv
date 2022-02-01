@@ -34,6 +34,9 @@
 #include "Utils.hpp"
 #include "Client.hpp"
 #include "ErrPage.hpp"
+#include "HttpMessage.hpp"
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 
 #define BUFFSIZE        4096
 #define MAX_BODY        100000000 // 100MB
@@ -81,15 +84,17 @@ private:
     void                        initContentTypes();
     void                        initIndexPages();
     void                        initTimeoutThread(pthread_t **timeout_thread, t_timeout_data *data, fd_set *curr_sock);
-    void                        handleRequest(int client_sock, fd_set &curr_sock);
+    void                        handleRequest(int clientSocket, fd_set &curr_sock);
     void                        sendResponse(int client_sock, fd_set &curr_sock, fd_set &write_sock);
     bool                        addNewClient(int client_sock);
     bool                        isKeepAlive(const std::vector<std::string> &data_lines);
+    bool                        receiveDataFromClient(char *buffer, int clientSocket, size_t &bytesRead);
     void                        removeClient(int client_sock, fd_set &curr_sock);
     std::string                 extractRequestPath(const char *buffer);
     int                         countEmptyHeaderLines(const char *buffer, unsigned request_type);
     unsigned                    defineRequestType(const char *buffer);
-    std::pair<const char*, size_t>               defineHeaderEdge(const char *buffer);
+//    bool                        ifHeaderFullyReceived();
+    void                        defineHeaderEdge(char *buffer, const size_t &bytesRead, char **headerEnd, size_t &headerSize);
     void                        addClientsToWriteSet(fd_set &write_sock);
     int                         countReadySockets(fd_set *read_sock, fd_set *write_sock);
     void                        error(std::string err_str);
