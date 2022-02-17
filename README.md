@@ -1,6 +1,8 @@
 # webserv (work in progress...)
 
-Simple Web-Server based on HTTP/1.1
+Simple Web-Server based on HTTP/1.1.
+
+In addition to mastering the client-server interactions and the principles of event-driven programming, the goal of the project was to learn and apply the basics of OOP.
 
 # About
 
