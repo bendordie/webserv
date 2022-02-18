@@ -1,4 +1,4 @@
-/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja /Users/cshells/Desktop/git_webserv
+/home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/bender/Desktop/CLion/clion-2021.3.3/bin/ninja/linux/ninja -G Ninja /home/bender/Desktop/webserv/new_webserv
 -- Configuring done
 -- Generating done
--- Build files have been written to: /Users/cshells/Desktop/git_webserv/cmake-build-debug
+-- Build files have been written to: /home/bender/Desktop/webserv/new_webserv/cmake-build-debug

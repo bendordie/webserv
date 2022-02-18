@@ -24,23 +24,31 @@
 #include <iostream>
 #include <fstream>
 
+using namespace std;
+
 namespace Utils {
 
-    typedef std::map<std::string, std::string>::const_iterator t_find_key;
+    typedef struct  s_file {
+        char    *data;
+        size_t  size;
+        string  type;
+    }               t_file;
 
-    std::vector<std::string>    split(std::string str, char ch);
-    std::string                 getTime();
-    std::string                 getExtension(const std::string& file_name);
+    typedef map<string, string>::const_iterator t_find_key;
+
+    vector<string>              split(string str, char ch);
+    string                      getTime();
+    string                      getExtension(const string& file_name);
     bool                        searchFileInDir(const char* dir_path, const char* file_name);
-    bool                        isPathAccessed(const std::string &path);
-    bool                        getDirContent(const char* dir_path, std::list<struct dirent> &content);
-    std::string                 getFileLastModTime(const std::string &file_path);
-    bool                        isPathExist(const std::string &path);
-    std::pair<char*, size_t>    readFile(std::string file_path);
+    bool                        isPathAccessed(const string &path);
+    bool                        getDirContent(const char* dir_path, list<struct dirent> &content);
+    string                      getFileLastModTime(const string &file_path);
+    bool                        isPathExist(const string &path);
+    t_file                      readFile(string file_path);
 
     t_find_key
-    findKey(std::map<std::string, std::string>::const_iterator begin, std::map<std::string,
-            std::string>::const_iterator end, std::string value);
+    findKey(map<string, string>::const_iterator begin, map<string,
+            string>::const_iterator end, string value);
 
 //    template<class T1, class T2>
 //    const typename std::map<T1, T2>::const_iterator

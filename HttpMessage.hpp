@@ -14,36 +14,40 @@
 #define __HTTPMESSAGE_HPP__
 #pragma once
 
+#include <unistd.h>
 #include <iostream>
 #include <vector>
+#include <map>
+
+using namespace std;
 
 class HttpMessage {
 
 
 public:
 
-    HttpMessage(unsigned code, const std::vector<std::string> &headerLines);
+    HttpMessage();
     virtual ~HttpMessage();
     HttpMessage(const HttpMessage &other);
     HttpMessage& operator=(const HttpMessage &other);
 
-    virtual std::vector<std::string>        getHeaderLines() const;
-    virtual const unsigned&                 getCode() const;
-    virtual const std::vector<uint8_t>&     getData() const = 0;
+    vector<string>              getHeaderLines() const;
+    const vector<char>&         getData() const;
+    const string&               getHeaderParamValue(const string &key) const;
 
 
-    void                                    setCode(unsigned code);
-    void                                    setHeaderLines(const std::vector<std::string> &headerLines);
-    void                                    setData(const char *begin, const char *end);
+    bool                        addHeaderParam(const string &key, const string &value);
+    bool                        removeHeaderParam(const string &key);
+    void                        setData(const char *begin, const char *end);
+    void                        appendData(const char *begin, const char *end);
+    void                        setHeaderLines(const std::vector<std::string> &headerLines);
 
 
 protected:
 
-    HttpMessage();
-
-    unsigned                    _code;
-    std::vector<std::string>    _headerLines;
-    std::vector<uint8_t>        _data;
+    map<string, string> _header_params;
+    vector<string>      _headerLines;
+    vector<char>        _data;
 
 
 

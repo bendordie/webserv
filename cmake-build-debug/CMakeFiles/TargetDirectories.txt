@@ -1,3 +1,3 @@
-/Users/cshells/Desktop/git_webserv/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/cshells/Desktop/git_webserv/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/cshells/Desktop/git_webserv/cmake-build-debug/CMakeFiles/webserv.dir
+/home/bender/Desktop/webserv/new_webserv/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/bender/Desktop/webserv/new_webserv/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/bender/Desktop/webserv/new_webserv/cmake-build-debug/CMakeFiles/webserv.dir

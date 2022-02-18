@@ -306,7 +306,7 @@ std::string Server::defineContentType(const std::string& file_path) const {
 void Server::makeGetResponse(Client *client) {
     int                         path_exist = false;
     int                         path_access = false;
-    std::string                 request_path = client->getRequestPath();
+    std::string                 request_path = "." + client->getRequestPath();
     const char*                 file_path;
     std::string                 file_time;
     std::string                 content_type;
@@ -316,6 +316,43 @@ void Server::makeGetResponse(Client *client) {
     std::cout << "Path requested: " << request_path << std::endl;
 
     boolalpha(std::cout);
+
+    if (request_path == "/") {
+
+        for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it) {
+            if ((path_exist = Utils::isPathExist(*it))) {
+                request_path += *it;
+                break;
+            }
+        }
+    }
+    path_exist = Utils::isPathExist(request_path);
+    if (!path_exist) {
+        request_path = "error_pages/404.html";
+        return new HttpResponse(404, "NOT FOUND", request_path);
+    }
+    path_access = access(file_path, R_OK) == 0;
+    if (!path_access) {
+        request_path = "error_pages/403.html";
+        return new HttpResponse(403, "FORBIDDEN", request_path);
+    }
+    if (request_path[request_path.length() - 1] == '/' && _autoindex) {
+        // autoindex page
+    } else {
+        // file uri
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     if (request_path == "/") {
         std::cout << "Index requested" << std::endl;
 
@@ -360,7 +397,6 @@ void Server::makeGetResponse(Client *client) {
             if (path_exist) {
                 std::cout << "Path exists" << std::endl;
                 path_access = (access(file_path, R_OK) == 0);
-//                path_access = Utils::isPathAccessed(file_path);
                 if (path_access) {
                     std::cout << "Path access granted" << std::endl;
 
@@ -368,9 +404,7 @@ void Server::makeGetResponse(Client *client) {
                     content_type = "text/html";
                     file_time = Utils::getTime();
                     std::string autoindex_page = makeAutoindexPage("." + request_path);
-//                    std::cout << "autoindex page: " << autoindex_page << std::endl;
                     size_t autoindex_size = autoindex_page.size();
-//                    std::cout << "autoindex size: " << autoindex_size << std::endl;
                     _response_data = new char[autoindex_size];
                     _response_data_size = autoindex_size;
                     std::memcpy(_response_data, autoindex_page.c_str(), autoindex_size);
@@ -415,6 +449,7 @@ void Server::makeGetResponse(Client *client) {
             response_status = "404 NOT FOUND";
         }
     }
+
     std::cout << "result path: " << file_path << std::endl;
     file_data = Utils::readFile(file_path);
     if (file_data.first) {

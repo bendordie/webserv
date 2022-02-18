@@ -39,29 +39,29 @@ include CMakeFiles/rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = /Users/cshells/Desktop/git_webserv/cmake-build-debug/
-
-#############################################
-# Utility command for rebuild_cache
-
-build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/cshells/Desktop/git_webserv/cmake-build-debug && /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake --regenerate-during-build -S/Users/cshells/Desktop/git_webserv -B/Users/cshells/Desktop/git_webserv/cmake-build-debug
-  DESC = Running CMake to regenerate build system...
-  pool = console
-  restat = 1
-
-build rebuild_cache: phony CMakeFiles/rebuild_cache.util
-
+cmake_ninja_workdir = /home/bender/Desktop/webserv/new_webserv/cmake-build-debug/
 
 #############################################
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/cshells/Desktop/git_webserv/cmake-build-debug && /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /home/bender/Desktop/webserv/new_webserv/cmake-build-debug && /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 
 build edit_cache: phony CMakeFiles/edit_cache.util
+
+
+#############################################
+# Utility command for rebuild_cache
+
+build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
+  COMMAND = cd /home/bender/Desktop/webserv/new_webserv/cmake-build-debug && /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/bin/cmake --regenerate-during-build -S/home/bender/Desktop/webserv/new_webserv -B/home/bender/Desktop/webserv/new_webserv/cmake-build-debug
+  DESC = Running CMake to regenerate build system...
+  pool = console
+  restat = 1
+
+build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 
 # =============================================================================
 # Object build statements for EXECUTABLE target webserv
@@ -72,15 +72,21 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 
 build cmake_object_order_depends_target_webserv: phony || CMakeFiles/webserv.dir
 
-build CMakeFiles/webserv.dir/main.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/main.cpp || cmake_object_order_depends_target_webserv
+build CMakeFiles/webserv.dir/main.cpp.o: CXX_COMPILER__webserv_Debug /home/bender/Desktop/webserv/new_webserv/main.cpp || cmake_object_order_depends_target_webserv
   DEP_FILE = CMakeFiles/webserv.dir/main.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++98
+  FLAGS = -g -std=gnu++98
   OBJECT_DIR = CMakeFiles/webserv.dir
   OBJECT_FILE_DIR = CMakeFiles/webserv.dir
 
-build CMakeFiles/webserv.dir/Server.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/Server.cpp || cmake_object_order_depends_target_webserv
+build CMakeFiles/webserv.dir/Server.cpp.o: CXX_COMPILER__webserv_Debug /home/bender/Desktop/webserv/new_webserv/Server.cpp || cmake_object_order_depends_target_webserv
   DEP_FILE = CMakeFiles/webserv.dir/Server.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++98
+  FLAGS = -g -std=gnu++98
+  OBJECT_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+
+build CMakeFiles/webserv.dir/Location.cpp.o: CXX_COMPILER__webserv_Debug /home/bender/Desktop/webserv/new_webserv/Location.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/Location.cpp.o.d
+  FLAGS = -g -std=gnu++98
   OBJECT_DIR = CMakeFiles/webserv.dir
   OBJECT_FILE_DIR = CMakeFiles/webserv.dir
 
@@ -92,8 +98,8 @@ build CMakeFiles/webserv.dir/Server.cpp.o: CXX_COMPILER__webserv_Debug /Users/cs
 #############################################
 # Link the executable webserv
 
-build webserv: CXX_EXECUTABLE_LINKER__webserv_Debug CMakeFiles/webserv.dir/main.cpp.o CMakeFiles/webserv.dir/Server.cpp.o
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14
+build webserv: CXX_EXECUTABLE_LINKER__webserv_Debug CMakeFiles/webserv.dir/main.cpp.o CMakeFiles/webserv.dir/Server.cpp.o CMakeFiles/webserv.dir/Location.cpp.o
+  FLAGS = -g
   OBJECT_DIR = CMakeFiles/webserv.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -109,7 +115,7 @@ build webserv: CXX_EXECUTABLE_LINKER__webserv_Debug CMakeFiles/webserv.dir/main.
 # =============================================================================
 
 #############################################
-# Folder: /Users/cshells/Desktop/git_webserv/cmake-build-debug
+# Folder: /home/bender/Desktop/webserv/new_webserv/cmake-build-debug
 
 build all: phony webserv
 
@@ -120,14 +126,14 @@ build all: phony webserv
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | ../CMakeLists.txt /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeCInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeCXXInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeGenericSystem.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/AppleClang-C.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/AppleClang-CXX.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/Clang.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/GNU.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-AppleClang-C.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-AppleClang-CXX.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-Clang-C.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-Clang-CXX.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-Clang.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Darwin-Initialize.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Darwin.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.21.1/CMakeCCompiler.cmake CMakeFiles/3.21.1/CMakeCXXCompiler.cmake CMakeFiles/3.21.1/CMakeSystem.cmake
+build build.ninja: RERUN_CMAKE | ../CMakeLists.txt /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeCInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeCXXInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeGenericSystem.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/GNU-C.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/GNU-CXX.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/GNU.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux-GNU-C.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux-GNU-CXX.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux-GNU.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.21.1/CMakeCCompiler.cmake CMakeFiles/3.21.1/CMakeCXXCompiler.cmake CMakeFiles/3.21.1/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build ../CMakeLists.txt /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeCInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeCXXInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeGenericSystem.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/AppleClang-C.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/AppleClang-CXX.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/Clang.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Compiler/GNU.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-AppleClang-C.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-AppleClang-CXX.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-Clang-C.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-Clang-CXX.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Apple-Clang.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Darwin-Initialize.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/Darwin.cmake /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.21/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.21.1/CMakeCCompiler.cmake CMakeFiles/3.21.1/CMakeCXXCompiler.cmake CMakeFiles/3.21.1/CMakeSystem.cmake: phony
+build ../CMakeLists.txt /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeCInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeCXXInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeGenericSystem.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/GNU-C.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/GNU-CXX.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Compiler/GNU.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux-GNU-C.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux-GNU-CXX.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux-GNU.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/Linux.cmake /home/bender/Desktop/CLion/clion-2021.3.3/bin/cmake/linux/share/cmake-3.21/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.21.1/CMakeCCompiler.cmake CMakeFiles/3.21.1/CMakeCXXCompiler.cmake CMakeFiles/3.21.1/CMakeSystem.cmake: phony
 
 
 #############################################

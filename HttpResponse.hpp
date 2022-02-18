@@ -10,23 +10,53 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
 #ifndef __HTTPRESPONSE_HPP__
 #define __HTTPRESPONSE_HPP__
-#pragma once
 
+
+#include "WebSession.hpp"
 #include "HttpMessage.hpp"
+#include "HttpRequest.hpp"
 
-class HttpResposnse : public HttpMessage {
+class HttpRequest;
+
+class WebSession;
+
+class HttpResponse : public HttpMessage {
 
 
 public:
 
-    HttpResposnse(unsigned code, const std::vector<std::string> &headerLines);
-    ~HttpResposnse();
+    HttpResponse(int status_code, string status_msg);
+    HttpResponse(int status_code, string status_msg, string data_path,
+                 const map<string, string> &content_types);
+    HttpResponse(int status_code, string status_msg,
+                 const char *data, size_t data_size, string content_type = "");
+    ~HttpResponse();
+
+    static HttpResponse*    createResponse(HttpRequest *request, WebServer *server);
+    static HttpResponse*    createGetResponse(HttpRequest *request, WebServer *server);
+    static HttpResponse*    createPostResponse(HttpRequest *request, WebServer *server);
+    static HttpResponse*    createDeleteResponse(HttpRequest *request, WebServer *server);
+    void                    makeResponseHeader(const string &file_time);
+    static string           makeAutoindexPage(string path);
+    static string           makeAutoindexLine(list<struct dirent>::iterator file, const string &path);
+//    static HttpResponse*       createNoBodyResponse(int status_code, string status_msg, string body_path = "");
 
 protected:
 
-    HttpResposnse();
+
+private:
+
+    int             _status_code;
+    string          _status_msg;
+    string          _header;
+    string          _data_path;
+//    const char*     _data;
+//    size_t          _data_size;
+    string          _content_type;
+    long long int   _content_length;
 
 };
 

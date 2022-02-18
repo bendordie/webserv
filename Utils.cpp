@@ -4,27 +4,27 @@
 
 #include "Utils.hpp"
 
-std::vector<std::string> Utils::split(std::string str, char ch) {
+vector<string> Utils::split(string str, char ch) {
 
-    std::vector<std::string> result;
+    vector<string> result;
 
-    if (str.length() > 0 && str.find(ch) == std::string::npos) {
+    if (str.length() > 0 && str.find(ch) == string::npos) {
         result.push_back(str);
         return (result);
     }
-    for (size_t i = str.find_first_not_of(ch, 0), j = str.find(ch, i); j != std::string::npos;) {
+    for (size_t i = str.find_first_not_of(ch, 0), j = str.find(ch, i); j != string::npos;) {
         result.push_back(str.substr(i,j - i));
         for (; str[j] == ch; ++j) {}
         i = j;
         j = str.find(ch, i);
-        if (i != str.length() && j == std::string::npos) {
+        if (i != str.length() && j == string::npos) {
             result.push_back(str.substr(i, str.length()));
         }
     }
     return result;
 }
 
-std::string Utils::getTime() {
+string Utils::getTime() {
     struct timeval  tv;
     time_t          nowtime;
     struct tm       *nowtm;
@@ -38,11 +38,11 @@ std::string Utils::getTime() {
     return tmbuf;
 }
 
-std::string Utils::getExtension(const std::string &file_name) {
+string Utils::getExtension(const string &file_name) {
     size_t pos = file_name.rfind('.');
 
     if (pos <= 0) return "";
-    return file_name.substr(pos+1, std::string::npos);
+    return file_name.substr(pos+1, string::npos);
 }
 
 bool Utils::searchFileInDir(const char* dir_path, const char* file_name) {
@@ -52,7 +52,7 @@ bool Utils::searchFileInDir(const char* dir_path, const char* file_name) {
 
     dirp = opendir(dir_path);
     if (dirp == NULL) {
-        std::cout << "Can't open directory" << std::endl;
+        cout << "Can't open directory" << endl;
         return false;
     }
     len = strlen(file_name);
@@ -77,7 +77,7 @@ bool Utils::searchFileInDir(const char* dir_path, const char* file_name) {
 //
 //    dirp = opendir(dir_path);
 //    if (dirp == NULL) {
-//        std::cout << "Can't open directory" << std::endl;
+//        cout << "Can't open directory" << endl;
 //        return false;
 //    }
 //    len = strlen(file_name);
@@ -95,12 +95,12 @@ bool Utils::searchFileInDir(const char* dir_path, const char* file_name) {
 //    return false;
 //}
 
-bool Utils::isPathExist(const std::string &path) {
+bool Utils::isPathExist(const string &path) {
         struct stat buffer;
         return (stat(path.c_str(), &buffer) == 0);
 }
 
-bool Utils::isPathAccessed(const std::string &path) {
+bool Utils::isPathAccessed(const string &path) {
     struct stat buffer;
 
     stat(path.c_str(), &buffer);
@@ -108,21 +108,21 @@ bool Utils::isPathAccessed(const std::string &path) {
 }
 
 
-bool Utils::getDirContent(const char* dir_path, std::list<struct dirent> &content) {
+bool Utils::getDirContent(const char* dir_path, list<struct dirent> &content) {
     size_t			len;
     struct dirent	*dp;
     DIR				*dirp;
 
     dirp = opendir(dir_path);
     if (dirp == NULL) {
-        std::cout << "Can't open directory" << std::endl;
+        cout << "Can't open directory" << endl;
         return false;
     }
     dp = readdir(dirp);
 //    int i = 0;
     while (dp)
     {
-//        std::cout << i << std::endl;
+//        cout << i << endl;
         content.push_back(*dp);
         dp = readdir(dirp);
 //        i++;
@@ -131,7 +131,7 @@ bool Utils::getDirContent(const char* dir_path, std::list<struct dirent> &conten
     return true;
 }
 
-std::string Utils::getFileLastModTime(const std::string& file_path) {
+string Utils::getFileLastModTime(const string& file_path) {
     struct stat     result;
     time_t          mod_time;
     struct tm       *nowtm;
@@ -148,35 +148,43 @@ std::string Utils::getFileLastModTime(const std::string& file_path) {
     return tmbuf;
 }
 
-std::pair<char*, size_t> Utils::readFile(std::string file_path) {
-    std::ifstream   stream;
-    char            *buff;
 
-    stream.open(file_path, std::ifstream::binary);
+Utils::t_file Utils::readFile(string file_path) {
+    ifstream        stream;
+    char            *buff;
+    t_file          file;
+
+    stream.open(file_path, ifstream::binary);
     if (stream.is_open()) {
         try {
             struct stat fi;
 
             bzero(&fi, sizeof(fi));
             stat(file_path.c_str(), &fi);
-            std::cout << "STAT FILE SIZE: " << fi.st_size << std::endl;
+            cout << "STAT FILE SIZE: " << fi.st_size << endl;
             buff = new char[fi.st_size];
             *buff = 0;
             stream.read(buff, fi.st_size);
             stream.close();
         }
-        catch (std::exception &ex) {
-            std::cout << ex.what() << std::endl;
+        catch (exception &ex) {
+            cout << ex.what() << endl;
         }
     } else {
-        std::cout << "Can't open file" << std::endl;
-        return std::make_pair((char*)NULL, 0);
+        cout << "Can't open file" << endl;
+        file.data = 0;
+        file.size = 0;
+        return file;
     }
-    return std::make_pair(buff, stream.gcount());;
+    file.data = buff;
+    file.size = stream.gcount();
+    file.type = getExtension(file_path);
+
+    return file;
 }
 
-Utils::t_find_key Utils::findKey(std::map<std::string, std::string>::const_iterator begin,
-                          std::map<std::string, std::string>::const_iterator end, std::string value) {
+Utils::t_find_key Utils::findKey(map<string, string>::const_iterator begin,
+                          map<string, string>::const_iterator end, string value) {
     for (; begin != end; ++begin) {
         if (!strncmp(begin->second.c_str(), value.c_str(), begin->second.length()))
             return begin;
@@ -187,8 +195,8 @@ Utils::t_find_key Utils::findKey(std::map<std::string, std::string>::const_itera
 
 
 //template <class T1, class T2>
-//const typename std::map<T1, T2>::const_iterator
-//Utils::findKey(typename std::map<T1, T2>::const_iterator begin, typename std::map<T1, T2>::const_iterator end,
+//const typename map<T1, T2>::const_iterator
+//Utils::findKey(typename map<T1, T2>::const_iterator begin, typename map<T1, T2>::const_iterator end,
 //               const T2 &value, T1) {
 //    for (; begin != end; ++begin) {
 //        if (begin->second == value)
@@ -197,7 +205,7 @@ Utils::t_find_key Utils::findKey(std::map<std::string, std::string>::const_itera
 //    return end;
 //}
 
-//unsigned int Utils::getStrFileSize(const std::string &file_path) {
+//unsigned int Utils::getStrFileSize(const string &file_path) {
 //    struct stat fi;
 //
 //}

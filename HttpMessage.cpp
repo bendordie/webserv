@@ -14,28 +14,47 @@
 
 HttpMessage::HttpMessage() {}
 
-HttpMessage::HttpMessage(unsigned int code, const std::vector<std::string> &headerLines)
-: _code(code), _headerLines(headerLines) {}
-
 HttpMessage::~HttpMessage() {}
 
 HttpMessage::HttpMessage(const HttpMessage &other) {}
 
 HttpMessage &HttpMessage::operator=(const HttpMessage &other) {}
 
-void HttpMessage::setCode(unsigned int code) { _code = code; }
 
-void HttpMessage::setHeaderLines(const std::vector<std::string> &headerLines) { _headerLines = headerLines; }
+//void HttpMessage::setHeaderLines(const std::vector<std::string> &headerLines) { _headerLines = headerLines; }
 
-void HttpMessage::setData(const char *begin, const char *end) {
-
-    for (; begin != end; ++begin) {
-        _data.assign(begin, end);
-    }
+bool HttpMessage::addHeaderParam(const string &key, const string &value) {
+    return _header_params.insert(make_pair(key, value)).second;
 }
 
-const unsigned int &HttpMessage::getCode() const { return _code; }
+bool HttpMessage::removeHeaderParam(const string &key) {
+    return _header_params.erase(key);
+}
+
+void HttpMessage::setData(const char *begin, const char *end) {
+    if (begin && end - 1)
+        _data.assign(begin, end);
+    else
+        std::cout << "HttpMessage: Data setting error" << std::endl;
+}
+
+void HttpMessage::appendData(const char *begin, const char *end) {
+    if (begin && end - 1)
+        _data.insert(_data.end(), begin, end);
+    else
+        std::cout << "HttpMessage: Data appending error" << std::endl;
+}
 
 std::vector<std::string> HttpMessage::getHeaderLines() const { return _headerLines; }
 
-const std::vector<uint8_t> &HttpMessage::getData() const { return _data; }
+const std::vector<char> &HttpMessage::getData() const { return _data; }
+
+const string& HttpMessage::getHeaderParamValue(const string &key) const {
+
+    map<string, string>::const_iterator it = _header_params.find(key);
+
+    if (it != _header_params.end())
+        return it->second;
+
+    return "";
+}
