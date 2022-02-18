@@ -14,6 +14,9 @@
 #ifndef __EVENTSELECTOR_HPP__
 #define __EVENTSELECTOR_HPP__
 
+#define DEBUG_DELAY_SEC 1
+
+#include <iostream>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>

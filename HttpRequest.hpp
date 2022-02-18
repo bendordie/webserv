@@ -51,7 +51,7 @@ public:
     const string&               getType() const;
     const string&               getPath() const;
     const string&               getContentType() const;
-    const long long&            getContentLength() const;
+    const long long             getContentLength() const;
     const size_t&               getHeaderSize() const;
     const size_t&               getSize() const;
     const size_t&               getDataSize() const;

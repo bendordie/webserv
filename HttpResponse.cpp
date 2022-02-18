@@ -49,9 +49,9 @@ HttpResponse::~HttpResponse() {}
 
 void HttpResponse::makeResponseHeader(const string &file_time) {
     _header.clear();
-    _header.append("HTTP/1.1 " + _status_code + "\n");
+    _header.append("HTTP/1.1 " + to_string(_status_code) + "\n");
     _header.append("Date: " + Utils::getTime() + "\n");
-    _header.append("Server: " + _name + "\n");
+    _header.append("Server: " + string("webserv") + "\n");  // TODO: serv name
     if (_status_code == 200 || _status_code == 201)
         _header.append("Last-Modified: " + file_time + "\n");
     _header.append("Accept-Ranges: bytes\n");
@@ -83,6 +83,7 @@ HttpResponse *HttpResponse::createGetResponse(HttpRequest *request, WebServer *s
     bool                        path_exist, path_access;
     const list<string>&         index_list = server->getIndexList();
     const map<string, string>   content_types = server->getContentTypes();
+    bool                        _autoindex = false;  // TODO: autoindex value
 
     if (path == "/") {
 
@@ -146,7 +147,7 @@ HttpResponse *HttpResponse::createDeleteResponse(HttpRequest *request, WebServer
     return new HttpResponse(200, "OK", "./deleted.html", server->getContentTypes());
 }
 
-HttpResponse *HttpResponse::createErrorResponse(int status_code, string status_msg) {}
+//HttpResponse *HttpResponse::createErrorResponse(int status_code, string status_msg) {}
 
 string HttpResponse::makeAutoindexPage(string path) {
     std::string res = "<html>\n"

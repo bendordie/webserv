@@ -12,9 +12,14 @@
 
 NAME = server
 
-SRC =	main.cpp \
-		Server.cpp \
-		Client.cpp \
+SRC =	main_new.cpp \
+		EventSelector.cpp \
+		FdHandler.cpp \
+		WebServer.cpp \
+		WebSession.cpp \
+		HttpMessage.cpp \
+		HttpRequest.cpp \
+		HttpResponse.cpp \
 		Utils.cpp
 
 OBJ = $(SRC:.cpp=.o)

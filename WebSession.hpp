@@ -51,6 +51,7 @@ class WebSession : public FdHandler {
     ~WebSession();
 
 
+    bool                _keep_alive;
     bool                _processed;
     bool                _request_received;
     WebServer           *_master;

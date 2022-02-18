@@ -14,7 +14,7 @@
 #ifndef __HTTPRESPONSE_HPP__
 #define __HTTPRESPONSE_HPP__
 
-
+#include "WebServer.hpp"
 #include "WebSession.hpp"
 #include "HttpMessage.hpp"
 #include "HttpRequest.hpp"
@@ -22,6 +22,8 @@
 class HttpRequest;
 
 class WebSession;
+
+class WebServer;
 
 class HttpResponse : public HttpMessage {
 
