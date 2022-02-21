@@ -28,7 +28,7 @@ HttpResponse::HttpResponse(int status_code, string status_msg, string data_path,
         file = Utils::readFile(data_path);
         // TODO: read not full file - chunked ( seekg() )
         if (!file.data) {
-            std::cout << "Response: Reading file error" << std::endl;
+            std::cout << "HttpResponse: Reading file error" << std::endl;
         }
         setData(file.data, file.data + file.size);
         _content_type = Utils::findKey(content_types.begin(), content_types.end(), file.type)->first;
@@ -79,6 +79,8 @@ HttpResponse *HttpResponse::createResponse(HttpRequest *request, WebServer *serv
 
 HttpResponse *HttpResponse::createGetResponse(HttpRequest *request, WebServer *server) {
 
+    std::cout << "HttpResponse: Creating GET response..." << std::endl;
+
     string                      path = "." + request->getPath();
     bool                        path_exist, path_access;
     const list<string>&         index_list = server->getIndexList();
@@ -86,23 +88,29 @@ HttpResponse *HttpResponse::createGetResponse(HttpRequest *request, WebServer *s
     bool                        _autoindex = false;  // TODO: autoindex value
 
     if (path == "/") {
+        std::cout << "HttpResponse: Index is required" << std::endl;
 
         for (std::list<std::string>::const_iterator it = index_list.begin(); it != index_list.end(); ++it) {
-            if ((path_exist = Utils::isPathExist(*it))) {
+            std::cout << "HttpResponse: Index existing: " << path_exist << std::endl;
+            if ((path_exist = Utils::isPathExist("." + *it))) {
                 path += *it;
                 break;
             }
         }
     }
+    std::cout << "HttpResponse: Path required: " << path << std::endl;
     path_exist = Utils::isPathExist(path);
+    std::cout << "HttpResponse: Path existing: " << path_exist << std::endl;
     if (!path_exist) {
         return new HttpResponse(404, "NOT FOUND", "error_pages/404.html", content_types);
     }
-    path_access = access(path.c_str(), R_OK) == 0;
+    path_access = (access(path.c_str(), R_OK) == 0);
+    std::cout << "HttpResponse: Path access: " << path_access << std::endl;
     if (!path_access) {
         return new HttpResponse(403, "FORBIDDEN", "error_pages/403.html", content_types);
     }
     if (path[path.length() - 1] == '/') {
+        std::cout << "HttpResponse: Handling as directory..." << std::endl;
         if (!_autoindex) {
             return new HttpResponse(403, "FORBIDDEN", "error_pages/403.html", content_types);
         }
@@ -115,6 +123,8 @@ HttpResponse *HttpResponse::createGetResponse(HttpRequest *request, WebServer *s
 }
 
 HttpResponse *HttpResponse::createPostResponse(HttpRequest *request, WebServer *server) {
+    std::cout << "HttpResponse: Creating POST response..." << std::endl;
+
     struct stat fi;
     const string &uri = request->getUri();
 
@@ -128,8 +138,7 @@ HttpResponse *HttpResponse::createPostResponse(HttpRequest *request, WebServer *
 }
 
 HttpResponse *HttpResponse::createDeleteResponse(HttpRequest *request, WebServer *server) {
-
-
+    std::cout << "HttpResponse: Creating DELETE response..." << std::endl;
 
     bool                        path_exist, remove_ok;
     std::string                 path = "." + request->getUri();
@@ -150,6 +159,8 @@ HttpResponse *HttpResponse::createDeleteResponse(HttpRequest *request, WebServer
 //HttpResponse *HttpResponse::createErrorResponse(int status_code, string status_msg) {}
 
 string HttpResponse::makeAutoindexPage(string path) {
+    std::cout << "HttpResponse: Preparing autoindex page..." << std::endl;
+
     std::string res = "<html>\n"
                        "<head><title>Index of ";
 

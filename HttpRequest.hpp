@@ -54,7 +54,7 @@ public:
     const long long             getContentLength() const;
     const size_t&               getHeaderSize() const;
     const size_t&               getSize() const;
-    const size_t&               getDataSize() const;
+    size_t                      getDataSize() const;
     const bool&                 getFullReceivedFlag() const;
     const size_t                getRestDataSize() const;
     const string&               getUri() const;
@@ -66,6 +66,7 @@ public:
     void                        setContentType(const string &contentType);
     void                        setContentLength(const long long int &contentLength);
     void                        setUri(const string &uri);
+    void                        setSize(size_t size);
     void                        setFullReceivedFlag(bool value);
 
 protected:
@@ -74,15 +75,15 @@ protected:
 
 private:
 
-    string          _type;
-    string          _path;
-    string          _content_type;
-    long long       _content_length;
-    string          _uri;
-    bool            _keep_alive;
-    size_t          _header_size;
-    size_t          _size;
-    bool            _full_received;
+    string                  _type;
+    string                  _path;
+    string                  _content_type;
+    long long               _content_length;
+    string                  _uri;
+    bool                    _keep_alive;
+    size_t                  _header_size;
+    size_t                  _size;
+    bool                    _full_received;
 
 };
 

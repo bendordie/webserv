@@ -28,8 +28,8 @@ public:
 
     virtual void    Handle(bool read, bool write) = 0;
     const int&      getFd() const;
-    virtual bool    wantRead() const;
-    virtual bool    wantWrite() const;
+    virtual bool    wantBeRead() const;
+    virtual bool    wantBeWritten() const;
 
 private:
 

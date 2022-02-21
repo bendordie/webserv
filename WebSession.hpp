@@ -68,8 +68,8 @@ class WebSession : public FdHandler {
     void                handleRequest();
     void                handleResponse();
     void                sendResponse(HttpResponse *response);
-    virtual bool        wantWrite();
-    virtual void        Handle(bool read, bool write);
+    bool                wantBeWritten() const;
+    void                Handle(bool read, bool write);
 
 //    void            sendMessage(const char *msg);
 //    void            ReadAndIgnore();

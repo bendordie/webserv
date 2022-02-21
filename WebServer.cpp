@@ -17,6 +17,7 @@ WebServer::WebServer(EventSelector *event_selector, int fd)
 
     std::cout << "WebServer: Joining to EventSelector..." << std::endl;
     _event_selector->add(this);
+    _index_list.push_back("index.html");
 }
 
 WebServer::~WebServer() {
@@ -71,6 +72,9 @@ void WebServer::Handle(bool read, bool write) {
     client_socket = accept(this->getFd(), (struct sockaddr*)&addr, &len);
     if (client_socket == -1)
         return;
+
+    fcntl(client_socket, F_SETFL, O_NONBLOCK);
+
     sleep(DEBUG_DELAY_SEC);
     WebSession  *session = new WebSession(this, client_socket);
     _session_list.push_front(session);

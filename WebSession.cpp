@@ -18,7 +18,7 @@ _processed(false), _master(master), _request(0) {}
 
 WebSession::~WebSession() {}
 
-bool WebSession::wantWrite() { return !_processed; }
+bool WebSession::wantBeWritten() const { return !_processed; }
 
 int WebSession::countControlCharSequenceLen(const char *start, const char *end) {
 
@@ -139,7 +139,9 @@ void WebSession::handleRequest() {
     const char  *header_end;
     HttpRequest *new_request;
 
-    for (;;) {
+    for (; start < end ;) {
+//        std::cout << "WebSession " << getFd() << ": Start address: " << (void*)start << std::endl;
+//        std::cout << "WebSession " << getFd() << ": End address: " << (void*)end << std::endl;
         std::cout << "WebSession " << getFd() << ": Preparing to find request..." << std::endl;
         num_chars_to_skip = countControlCharSequenceLen(start, end);
         std::cout << "WebSession " << getFd() << ": Number of control chars to skip: " << num_chars_to_skip << std::endl;
@@ -161,8 +163,8 @@ void WebSession::handleRequest() {
 
         std::cout << "WebSession " << getFd() << ": Defining header end..." << std::endl;
         header_end = defineHeaderEnd(request_begin);
-        if (header_end)
-            std::cout << "WebSession " << getFd() << ": Header end - 5: " << header_end - 5 << std::endl;
+//        if (header_end)
+//            std::cout << "WebSession " << getFd() << ": Header end - 5: " << header_end - 5 << std::endl;
         if (!header_end) {
             std::cout << "WebSession " << getFd() << ": Saving data received for next handling..." << std::endl;
             _tmp_data.assign(request_begin, end);
@@ -227,8 +229,6 @@ bool WebSession::handlePostData(HttpRequest *request) {
 
 void WebSession::handleResponse() {
 
-    std::cout << "WebSession " << getFd() << ": Handling response..." << std::endl;
-
     HttpResponse                    *response;
     list<HttpRequest*>::iterator    it = _request_list.begin();
 
@@ -236,6 +236,7 @@ void WebSession::handleResponse() {
         return;
 
     _keep_alive = (*it)->isKeepAlive();
+    std::cout << "WebSession " << getFd() << ": Keep alive has been set to " << _keep_alive << std::endl;
     response = HttpResponse::createResponse(*it, _master);
     if (!response) {
         std::cout << "WebSession " << getFd() << ": No response" << std::endl;
@@ -255,6 +256,7 @@ void WebSession::sendResponse(HttpResponse *response) {
     bool send_ok;
 
     send_ok = send(getFd(), response->getData().begin().base(), response->getData().size(), 0) >= 0;
+    std::cout << "WebSession " << getFd() << ": Response has been sent" << std::endl;
     if (!send_ok)
         std::cout << "WebSession " << getFd() << ": Send error" << std::endl;
 }

@@ -15,8 +15,8 @@
 HttpRequest::HttpRequest(string type, string path)
 : HttpMessage(), _type(type), _path(path) {
 
-    addHeaderParam("Request-Type", type);
-    addHeaderParam("Request-Path", path);
+    addHeaderEntry("Request-Type", type);
+    addHeaderEntry("Request-Path", path);
 }
 
 HttpRequest::HttpRequest(std::string type, std::string path, bool keep_alive, std::string content_type,
@@ -39,64 +39,72 @@ HttpRequest *HttpRequest::createRequest(string request_type, const char *header_
 
     std::cout << "HttpRequest: Request path: " << request_path << std::endl;
 
+//    std::cout << "HttpRequest: Header begin: " << std::endl;
+//    std::cout << "--------------------------------------------------" << std::endl;
+//    std::cout << header_begin << std::endl;
+//    std::cout << "--------------------------------------------------" << std::endl;
+
     HttpRequest     *request = new HttpRequest(request_type, request_path);
     std::cout << "HttpRequest: Request has been created" << std::endl;
 
     vector<string>  header_lines = Utils::split(string(strchr(header_begin, '\n') + 1, header_end), '\n'); // TODO: smthing wrong with SPLIT?? Missing first element
-//    if (header_lines.size() > 1) // split adds empty line from standard header
-//        header_lines.erase(header_lines.end() - 1);
 
-//    header_lines.erase(header_lines.cend() - 2); // TODO: how to delete last element???
-    std::cout << "HttpRequest: Last header line: " << *header_lines.rbegin() << std::endl;
-    std::cout << "HttpRequest: Header lines: " << request_path << std::endl;
-    std::cout << "--------------------------------------------------" << std::endl;
-    for (vector<string>::iterator it = header_lines.begin(); it != header_lines.end(); ++it)
-        std::cout << *it << std::endl;
-    std::cout << "--------------------------------------------------" << std::endl;
+    header_lines.erase(header_lines.cend() - 1); // TODO: how to delete last element???
+//    std::cout << "HttpRequest: Header lines: " << std::endl;
+//    std::cout << "--------------------------------------------------" << std::endl;
+//    for (vector<string>::iterator it = header_lines.begin(); it != header_lines.end(); ++it)
+//        std::cout << *it << std::endl;
+//    std::cout << "--------------------------------------------------" << std::endl;
 
     pair<string, string>    header_entry;
+    map<string, string>     header_entries;
     for (vector<string>::iterator it = header_lines.begin(); it != header_lines.end(); ++it) {
-
         header_entry = extractParam2((*it));
-        std::cout << "HttpRequest: Header entry: " << std::endl;
-        std::cout << "--------------------------------------------------" << std::endl;
-        std::cout << "key: " << header_entry.first << std::endl;
-        std::cout << "value: " << header_entry.second << std::endl;
-        std::cout << "--------------------------------------------------" << std::endl;
-//        if (header_entry.first.empty()) {
-//            std::cout << "HttpRequest: Fail: Invalid header entry format" << std::endl;
-//            return 0;
-//        }
+//        std::cout << "HttpRequest: Header entry: " << std::endl;
+//        std::cout << "--------------------------------------------------" << std::endl;
+//        std::cout << "key: " << header_entry.first << std::endl;
+//        std::cout << "value: " << header_entry.second << std::endl;
+//        std::cout << "--------------------------------------------------" << std::endl;
+        if (header_entry.first.empty()) {
+            std::cout << "HttpRequest: Fail: Invalid header entry format" << std::endl;
+            return 0;
+        }
+        request->addHeaderEntry(header_entry);
     }
 
-    long long       content_length = 0;
-    std::string     content_type = "";
+
+
+//    std::string     content_type = "";
+    bool        full_received = true;
+    long long   content_length = 0;
     if (request_type == "POST") {
+        const char  *data_begin = header_end;
+        const char  *data_end;
+
         content_length = request->getContentLength();
-        content_type = request->getType();
+        if (data_begin + content_length > header_begin + buf_size) {
+            data_end = header_begin + buf_size;
+            full_received = false;
+        } else {
+            data_end = data_begin + content_length;
+            full_received = true;
+        }
+        std::cout << "HttpRequest: Buf size: " << buf_size << std::endl;
+        std::cout << "HttpRequest: Data begin address: " << (void*)data_begin << std::endl;
+        std::cout << "HttpRequest: Data end address: " << (void*)data_end << std::endl;
+        std::cout << "HttpRequest: Setting data..." << std::endl;
+        std::cout << "HttpRequest: Data begin: " << std::endl;
+        std::cout << "--------------------------------------------------" << std::endl;
+        std::cout << data_begin << + "$" << std::endl;
+        std::cout << "--------------------------------------------------" << std::endl;
+        request->setData(data_begin, data_end);
+//        content_type = request->getType();
     }
-    size_t      request_size = header_size + strlen("\r\n") + content_length;
+    size_t      request_size = header_size + content_length;
 
-    bool        full_received;
-    const char  *data_begin = header_end + strlen("\r\n");
-    const char  *data_end;
 
-    if (data_begin + content_length > header_begin + buf_size) {
-        data_end = header_begin + buf_size;
-        full_received = false;
-    } else {
-        data_end = data_begin + content_length;
-        full_received = true;
-    }
-    std::cout << "HttpRequest: Buf size: " << buf_size << std::endl;
-    std::cout << "HttpRequest: Data begin address: " << (void*)data_begin << std::endl;
-    std::cout << "HttpRequest: Data end address: " << (void*)data_end << std::endl;
-    std::cout << "HttpRequest: Setting data..." << std::endl;
-    std::cout << "HttpRequest: Data begin: " << std::endl;
-    std::cout << "--------------------------------------------------" << std::endl;
-    std::cout << data_begin << + "$" << std::endl;
-    std::cout << "--------------------------------------------------" << std::endl;
-    request->setData(data_begin, data_end);
+    std::cout << "HttpRequest: Setting request size to " << request_size << "..." << std::endl;
+    request->setSize(request_size);
     std::cout << "HttpRequest: Setting full_received flag to " << full_received << "..." << std::endl;
     request->setFullReceivedFlag(full_received);
 
@@ -158,6 +166,9 @@ void HttpRequest::setContentLength(const long long &contentLength) { _content_le
 
 void HttpRequest::setUri(const string &uri) { _uri = uri; }
 
+void HttpRequest::setSize(size_t size) { _size = size; }
+
+
 void HttpRequest::setFullReceivedFlag(bool value) { _full_received = value; }
 
 const std::string &HttpRequest::getType() const { return _type; }
@@ -167,7 +178,7 @@ const std::string &HttpRequest::getPath() const { return _path; }
 const std::string &HttpRequest::getContentType() const { return _content_type; }
 
 const long long  HttpRequest::getContentLength() const {
-    const string&   value = getHeaderParamValue("Content-Length");
+    const string&   value = getHeaderEntryValue("Content-Length");
 
     if (value.empty())
         return -1;
@@ -183,7 +194,7 @@ const size_t &HttpRequest::getHeaderSize() const { return _header_size; }
 
 const size_t &HttpRequest::getSize() const { return _size; }
 
-const size_t &HttpRequest::getDataSize() const { return _data.size(); }
+size_t HttpRequest::getDataSize() const { return _data.size(); }
 
 const bool &HttpRequest::getFullReceivedFlag() const { return _full_received; }
 
@@ -193,7 +204,7 @@ const string &HttpRequest::getUri() const { return _uri; }
 
 bool HttpRequest::isKeepAlive() const {
 
-    if (getHeaderParamValue("Connection") == "keep-alive")
+    if (getHeaderEntryValue("Connection") == "keep-alive")
         return true;
 
     return false;

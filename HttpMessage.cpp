@@ -20,17 +20,6 @@ HttpMessage::HttpMessage(const HttpMessage &other) {}
 
 HttpMessage &HttpMessage::operator=(const HttpMessage &other) {}
 
-
-//void HttpMessage::setHeaderLines(const std::vector<std::string> &headerLines) { _headerLines = headerLines; }
-
-bool HttpMessage::addHeaderParam(const string &key, const string &value) {
-    return _header_params.insert(make_pair(key, value)).second;
-}
-
-bool HttpMessage::removeHeaderParam(const string &key) {
-    return _header_params.erase(key);
-}
-
 void HttpMessage::setData(const char *begin, const char *end) {
     if (begin && end - 1)
         _data.assign(begin, end);
@@ -45,16 +34,32 @@ void HttpMessage::appendData(const char *begin, const char *end) {
         std::cout << "HttpMessage: Data appending error" << std::endl;
 }
 
-std::vector<std::string> HttpMessage::getHeaderLines() const { return _headerLines; }
+bool HttpMessage::addHeaderEntry(const string &key, const string &value) {
+    return _header_entries.insert(make_pair(key, value)).second;
+}
+
+bool HttpMessage::addHeaderEntry(const pair<string, string> &entry) {
+    return _header_entries.insert(entry).second;
+}
+
+bool HttpMessage::removeHeaderEntry(const string &key) {
+    return _header_entries.erase(key);
+}
+
+void HttpMessage::setHeaderEntries(const map<string, string> &header_entries) { _header_entries = header_entries; }
 
 const std::vector<char> &HttpMessage::getData() const { return _data; }
 
-const string& HttpMessage::getHeaderParamValue(const string &key) const {
+string HttpMessage::getHeaderEntryValue(const string &key) const {
 
-    map<string, string>::const_iterator it = _header_params.find(key);
+    map<string, string>::const_iterator it = _header_entries.find(key);
 
-    if (it != _header_params.end())
+    if (it != _header_entries.end())
         return it->second;
 
     return "";
+}
+
+string HttpMessage::operator[](const string &key) const {
+    return getHeaderEntryValue(key);
 }

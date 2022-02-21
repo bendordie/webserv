@@ -161,7 +161,6 @@ Utils::t_file Utils::readFile(string file_path) {
 
             bzero(&fi, sizeof(fi));
             stat(file_path.c_str(), &fi);
-            cout << "STAT FILE SIZE: " << fi.st_size << endl;
             buff = new char[fi.st_size];
             *buff = 0;
             stream.read(buff, fi.st_size);
@@ -171,7 +170,7 @@ Utils::t_file Utils::readFile(string file_path) {
             cout << ex.what() << endl;
         }
     } else {
-        cout << "Can't open file" << endl;
+        cout << "ReadFile: Can't open file" << endl;
         file.data = 0;
         file.size = 0;
         return file;

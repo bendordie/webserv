@@ -25,6 +25,6 @@ FdHandler &FdHandler::operator=(const FdHandler &other) {}
 
 const int &FdHandler::getFd() const { return _fd; }
 
-bool FdHandler::wantRead() const { return true; }
+bool FdHandler::wantBeRead() const { return true; }
 
-bool FdHandler::wantWrite() const { return false; }
+bool FdHandler::wantBeWritten() const { return false; }

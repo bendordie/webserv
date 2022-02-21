@@ -88,12 +88,12 @@ void EventSelector::run() {
         FD_ZERO(&write_set);
         for (i = 0; i <= _max_fd; ++i) {
             if (_fd_array[i]) {
-                if (_fd_array[i]->wantRead()) {
-                    std::cout << "EventSelector: FD " << i << " want to read" << std::endl;
+                if (_fd_array[i]->wantBeRead()) {
+                    std::cout << "EventSelector: FD " << i << " marked as wanting to be read" << std::endl;
                     FD_SET(i, &read_set);
                 }
-                if (_fd_array[i]->wantWrite()) {
-                    std::cout << "EventSelector: FD " << i << " want to write" << std::endl;
+                if (_fd_array[i]->wantBeWritten()) {
+                    std::cout << "EventSelector: FD " << i << " marked as wanting to be written" << std::endl;
                     FD_SET(i, &write_set);
                 }
             }

@@ -31,22 +31,21 @@ public:
     HttpMessage(const HttpMessage &other);
     HttpMessage& operator=(const HttpMessage &other);
 
-    vector<string>              getHeaderLines() const;
     const vector<char>&         getData() const;
-    const string&               getHeaderParamValue(const string &key) const;
+    string                      getHeaderEntryValue(const string &key) const;
+    string                      operator[](const string &key) const;
 
-
-    bool                        addHeaderParam(const string &key, const string &value);
-    bool                        removeHeaderParam(const string &key);
     void                        setData(const char *begin, const char *end);
     void                        appendData(const char *begin, const char *end);
-    void                        setHeaderLines(const std::vector<std::string> &headerLines);
+    bool                        addHeaderEntry(const string &key, const string &value);
+    bool                        addHeaderEntry(const pair<string, string> &entry);
+    bool                        removeHeaderEntry(const string &key);
+    void                        setHeaderEntries(const map<string, string> &header_entries);
 
 
 protected:
 
-    map<string, string> _header_params;
-    vector<string>      _headerLines;
+    map<string, string> _header_entries;
     vector<char>        _data;
 
 
