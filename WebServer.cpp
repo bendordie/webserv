@@ -15,6 +15,7 @@
 WebServer::WebServer(EventSelector *event_selector, int fd)
 : FdHandler(fd, true), _event_selector(event_selector) {
 
+    initContentTypes();
     std::cout << "WebServer: Joining to EventSelector..." << std::endl;
     _event_selector->add(this);
     _index_list.push_back("index.html");
@@ -93,6 +94,81 @@ void WebServer::removeSession(WebSession *session) {
             return;
         }
     }
+}
+
+void WebServer::initContentTypes() {
+    _content_types.insert(std::make_pair("aac", "audio/aac"));
+    _content_types.insert(std::make_pair("abw", "application/x-abiword"));
+    _content_types.insert(std::make_pair("arc", "application/x-freearc"));
+    _content_types.insert(std::make_pair("avi", "video/x-msvideo"));
+    _content_types.insert(std::make_pair("azw", "application/vnd.amazon.ebook"));
+    _content_types.insert(std::make_pair("bin", "application/octet-stream"));
+    _content_types.insert(std::make_pair("bmp", "image/bmp"));
+    _content_types.insert(std::make_pair("bz", "application/x-bzip"));
+    _content_types.insert(std::make_pair("bz2", "application/x-bzip2"));
+    _content_types.insert(std::make_pair("csh", "application/x-csh"));
+    _content_types.insert(std::make_pair("css", "text/css"));
+    _content_types.insert(std::make_pair("csv", "text/csv"));
+    _content_types.insert(std::make_pair("doc", "application/msword"));
+    _content_types.insert(std::make_pair("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+    _content_types.insert(std::make_pair("eot", "application/vnd.ms-fontobject"));
+    _content_types.insert(std::make_pair("epub", "application/epub+zip"));
+    _content_types.insert(std::make_pair("gz", "application/gzip"));
+    _content_types.insert(std::make_pair("gif", "image/gif"));
+    _content_types.insert(std::make_pair("htm", "text/html"));
+    _content_types.insert(std::make_pair("html", "text/html"));
+    _content_types.insert(std::make_pair("ico", "image/vnd.microsoft.icon"));
+    _content_types.insert(std::make_pair("ics", "text/calendar"));
+    _content_types.insert(std::make_pair("jar", "application/java-archive"));
+    _content_types.insert(std::make_pair("jpeg", "image/jpeg"));
+    _content_types.insert(std::make_pair("jpg", "image/jpeg"));
+    _content_types.insert(std::make_pair("js", "text/javascript"));
+    _content_types.insert(std::make_pair("json", "application/json"));
+    _content_types.insert(std::make_pair("jsonld", "application/ld+json"));
+    _content_types.insert(std::make_pair("mid", "audio/midi audio/x-midi"));
+    _content_types.insert(std::make_pair("midi", "audio/midi audio/x-midi"));
+    _content_types.insert(std::make_pair("mjs", "text/javascript"));
+    _content_types.insert(std::make_pair("mp3", "audio/mpeg"));
+    _content_types.insert(std::make_pair("mpeg", "video/mpeg"));
+    _content_types.insert(std::make_pair("mpkg", "application/vnd.apple.installer+xml"));
+    _content_types.insert(std::make_pair("odp", "application/vnd.oasis.opendocument.presentation"));
+    _content_types.insert(std::make_pair("ods", "application/vnd.oasis.opendocument.spreadsheet"));
+    _content_types.insert(std::make_pair("odt", "application/vnd.oasis.opendocument.text"));
+    _content_types.insert(std::make_pair("oga", "audio/ogg"));
+    _content_types.insert(std::make_pair("ogv", "video/ogg"));
+    _content_types.insert(std::make_pair("ogx", "application/ogg"));
+    _content_types.insert(std::make_pair("opus", "audio/opus"));
+    _content_types.insert(std::make_pair("otf", "font/otf"));
+    _content_types.insert(std::make_pair("png", "image/png"));
+    _content_types.insert(std::make_pair("pdf", "application/pdf"));
+    _content_types.insert(std::make_pair("php", "application/php"));
+    _content_types.insert(std::make_pair("ppt", "application/vnd.ms-powerpoint"));
+    _content_types.insert(std::make_pair("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"));
+    _content_types.insert(std::make_pair("rar", "application/vnd.rar"));
+    _content_types.insert(std::make_pair("rtf", "application/rtf"));
+    _content_types.insert(std::make_pair("sh", "application/x-sh"));
+    _content_types.insert(std::make_pair("svg", "image/svg+xml"));
+    _content_types.insert(std::make_pair("swf", "application/x-shockwave-flash"));
+    _content_types.insert(std::make_pair("tar", "application/x-tar"));
+    _content_types.insert(std::make_pair("tif", "image/tiff"));
+    _content_types.insert(std::make_pair("tiff", "image/tiff"));
+    _content_types.insert(std::make_pair("ts", "video/mp2t"));
+    _content_types.insert(std::make_pair("ttf", "font/ttf"));
+    _content_types.insert(std::make_pair("txt", "text/plain"));
+    _content_types.insert(std::make_pair("vsd", "application/vnd.visio"));
+    _content_types.insert(std::make_pair("wav", "audio/wav"));
+    _content_types.insert(std::make_pair("weba", "audio/webm"));
+    _content_types.insert(std::make_pair("webm", "video/webm"));
+    _content_types.insert(std::make_pair("webp", "image/webp"));
+    _content_types.insert(std::make_pair("woff", "font/woff"));
+    _content_types.insert(std::make_pair("woff2", "font/woff2"));
+    _content_types.insert(std::make_pair("xhtml", "application/xhtml+xml"));
+    _content_types.insert(std::make_pair("xls", "application/vnd.ms-excel"));
+    _content_types.insert(std::make_pair("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+    _content_types.insert(std::make_pair("xml", "text/xml"));
+    _content_types.insert(std::make_pair("xul", "application/vnd.mozilla.xul+xml"));
+    _content_types.insert(std::make_pair("zip", "application/zip"));
+    _content_types.insert(std::make_pair("7z", "application/x-7z-compressed"));
 }
 
 const list<Location *> WebServer::getLocationList() const { return _location_list; }

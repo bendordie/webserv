@@ -40,6 +40,8 @@ public:
 
     static WebServer*           start(EventSelector *event_selector, int port);
     void                        removeSession(WebSession *session);
+    void                        initContentTypes();
+
     const list<string>&         getIndexList() const;
     const list<Location*>       getLocationList() const;
     const map<string, string>   getContentTypes() const;

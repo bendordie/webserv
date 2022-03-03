@@ -69,6 +69,7 @@ class WebSession : public FdHandler {
     void                handleRequest();
     size_t              addNewRequest(const string &type, const char *header_begin,
                                       const char *header_end, size_t buf_size);
+    bool                checkThis(const char *header_end, size_t request_size1, size_t request_size2);
 //    const char*          handleHeaderEnd(const char *begin, const char *end);
     HttpRequest*        retrieveRequestFromBuffer(const char *request_begin);
     void                handleRequestPipeline(const char *buffer, size_t bytes_read);

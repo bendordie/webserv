@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
 //                          "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36\n"
 //                          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b\r\n\r\n");
 
-        sprintf(sendline, "GET / HTTP/1.1\r\n"
+        sprintf(sendline, "GET / HTTP/1.0\r\n"
                           "Host: 127.0.0.1\r\n"
-                          "Connection: keep-alive\r\n"
+                          "Connection: close\r\n"
                           "Cache-Control: max-age=0\r\n"
                           "sec-ch-ua: \"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"\r\n"
                           "sec-ch-ua-mobile: ?0\r\n"

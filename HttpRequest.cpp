@@ -47,7 +47,7 @@ HttpRequest *HttpRequest::createRequest(string request_type, const char *header_
     HttpRequest     *request = new HttpRequest(request_type, request_path);
     std::cout << "HttpRequest: Request has been created" << std::endl;
 
-    vector<string>  header_lines = Utils::split(string(strchr(header_begin, '\n') + 1, header_end), '\n'); // TODO: smthing wrong with SPLIT?? Missing first element
+    vector<string>  header_lines = Utils::split(string(strchr(header_begin, '\n') + 1, header_end), "\r\n"); // TODO: smthing wrong with SPLIT?? Missing first element
 
     header_lines.erase(header_lines.cend() - 1); // TODO: how to delete last element???
 //    std::cout << "HttpRequest: Header lines: " << std::endl;

@@ -4,7 +4,7 @@
 
 #include "Utils.hpp"
 
-vector<string> Utils::split(string str, char ch) {
+vector<string> Utils::split(const string &str, char ch) {
 
     vector<string> result;
 
@@ -17,6 +17,27 @@ vector<string> Utils::split(string str, char ch) {
         for (; str[j] == ch; ++j) {}
         i = j;
         j = str.find(ch, i);
+        if (i != str.length() && j == string::npos) {
+            result.push_back(str.substr(i, str.length()));
+        }
+    }
+    return result;
+}
+
+vector<string> Utils::split(const string &str, const string &val) {
+    vector<string> result;
+
+    if (str.length() > 0 && str.find(val) == string::npos) {
+        result.push_back(str);
+        return (result);
+    }
+    size_t i = 0;
+    for (; i != str.length() && strnstr(&str[i], val.c_str(), val.length()); i += val.length()) {}
+    for (size_t j = str.find(val, i); j != string::npos;) {
+        result.push_back(str.substr(i,j - i));
+        for (; j != str.length() && strnstr(&str[j], val.c_str(), val.length()); j += val.length()) {}
+        i = j;
+        j = str.find(val, i);
         if (i != str.length() && j == string::npos) {
             result.push_back(str.substr(i, str.length()));
         }
@@ -182,10 +203,11 @@ Utils::t_file Utils::readFile(string file_path) {
     return file;
 }
 
-Utils::t_find_key Utils::findKey(map<string, string>::const_iterator begin,
-                          map<string, string>::const_iterator end, string value) {
+map<string, string>::const_iterator
+Utils::findKey(map<string, string>::const_iterator begin, map<string, string>::const_iterator end,
+               const string &value) {
     for (; begin != end; ++begin) {
-        if (!strncmp(begin->second.c_str(), value.c_str(), begin->second.length()))
+        if (value == begin->second)
             return begin;
     }
     return end;

@@ -49,11 +49,11 @@ const char* WebSession::defineHeaderEnd(const char *begin) {
 
     header_end = strstr(begin, "\r\n\r\n");
     if (header_end) {
-        std::cout << "WebSession " << getFd() << ": End exists" << std::endl;
+        std::cout << "WebSession " << getFd() << ": Header end exists" << std::endl;
         header_end += strlen("\r\n\r\n");
     }
     else
-        std::cout << "WebSession " << getFd() << ": End does not exist" << std::endl;
+        std::cout << "WebSession " << getFd() << ": Header end not found" << std::endl;
 
     return header_end;
 }
@@ -123,6 +123,26 @@ size_t WebSession::addNewRequest(const string &type, const char *header_begin, c
     return new_request->getSize();
 }
 
+//bool WebSession::checkThis(const char *header_end, size_t request_size1, size_t request_size2) {
+//
+//    if (!header_end) {
+//        std::cout << "WebSession " << getFd() << ": Header end not found. Saving data received for next handling..." << std::endl;
+//        if (_tmp_data.size() + bytes_read > 4000) {
+//            std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
+//            _master->removeSession(this);
+//            return;
+//        }
+//        std::cout << "WebSession " << getFd() << ": Saving data received for next handling..." << std::endl;
+//        _tmp_data.insert(_tmp_data.end(), buffer, buffer + bytes_read);
+//        return;
+//    }
+//    if (_tmp_data.size() + header_end - buffer > 4000) {
+//        std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
+//        _master->removeSession(this);
+//        return;
+//    }
+//}
+
 void WebSession::handleRequest() {
 
     char            *buffer = new char[buffer_size + 1];
@@ -154,7 +174,6 @@ void WebSession::handleRequest() {
         std::cout << "WebSession " << getFd() << ": Defining header end..." << std::endl;
         const char  *header_end = defineHeaderEnd(buffer);
         if (!header_end) {
-            std::cout << "WebSession " << getFd() << ": Header end not found. Saving data received for next handling..." << std::endl;
             if (_tmp_data.size() + bytes_read > 4000) {
                 std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
                 _master->removeSession(this);
@@ -244,12 +263,11 @@ void WebSession::handleRequest() {
                 _master->removeSession(this);
                 return;
             }
-            std::cout << "WebSession " << getFd() << ": Header end not found. Saving data received for next handling..." << std::endl;
+            std::cout << "WebSession " << getFd() << ": Saving data received for next handling..." << std::endl;
             _tmp_request_type = request_type;
             _tmp_data.assign(request_begin, end);
             return;
         }
-        std::cout << "WebSession " << getFd() << ": Header end exists" << std::endl;
 //        std::cout << "WebSession " << getFd() << ": Header end - 5: " << header_end - 5 << std::endl;
         if (header_end - request_begin > 4000) {
             std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
@@ -314,8 +332,10 @@ void WebSession::handleResponse() {
     }
     sendResponse(response);
     _request_list.erase(it);
-    if (_request_list.empty())
+    if (_request_list.empty()) {
+        std::cout << "WebSession " << getFd() << ": Has been processed" << std::endl;
         _processed = true;
+    }
     if (!_keep_alive && _processed) {
         _master->removeSession(this);
     }

@@ -34,9 +34,10 @@ namespace Utils {
         string  type;
     }               t_file;
 
-    typedef map<string, string>::const_iterator t_find_key;
+//    typedef map<string, string>::const_iterator t_map_const_iter;
 
-    vector<string>              split(string str, char ch);
+    vector<string>              split(const string &str, char ch);
+    vector<string>              split(const string &str, const string &val);
     string                      getTime();
     string                      getExtension(const string& file_name);
     bool                        searchFileInDir(const char* dir_path, const char* file_name);
@@ -45,10 +46,7 @@ namespace Utils {
     string                      getFileLastModTime(const string &file_path);
     bool                        isPathExist(const string &path);
     t_file                      readFile(string file_path);
-
-    t_find_key
-    findKey(map<string, string>::const_iterator begin, map<string,
-            string>::const_iterator end, string value);
+    map<string, string>::const_iterator            findKey(map<string, string>::const_iterator begin, map<string, string>::const_iterator end, const string &value);
 
 //    template<class T1, class T2>
 //    const typename std::map<T1, T2>::const_iterator

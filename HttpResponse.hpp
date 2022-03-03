@@ -30,10 +30,10 @@ class HttpResponse : public HttpMessage {
 
 public:
 
-    HttpResponse(int status_code, string status_msg);
-    HttpResponse(int status_code, string status_msg, string data_path,
-                 const map<string, string> &content_types);
-    HttpResponse(int status_code, string status_msg,
+    HttpResponse(int status_code, const string &status_msg);
+    HttpResponse(int status_code, const string &status_msg, const string &connection,
+                 const string &data_path, const map<string, string> &content_types);
+    HttpResponse(int status_code, const string &status_msg, const string &connection,
                  const char *data, size_t data_size, string content_type = "");
     ~HttpResponse();
 
@@ -58,6 +58,7 @@ private:
 //    const char*     _data;
 //    size_t          _data_size;
     string          _content_type;
+    string          _connection;
     long long int   _content_length;
 
 };

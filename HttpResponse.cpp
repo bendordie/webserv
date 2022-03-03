@@ -12,13 +12,14 @@
 
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(int status_code, string status_msg)
-: HttpMessage(), _status_code(status_code), _status_msg(status_msg) {
+HttpResponse::HttpResponse(int status_code, const string &status_msg)
+    : HttpMessage(), _status_code(status_code), _status_msg(status_msg) {
     makeResponseHeader("");
 }
 
-HttpResponse::HttpResponse(int status_code, string status_msg, string data_path, const map<string, string> &content_types)
-: HttpMessage(), _status_code(status_code), _status_msg(status_msg), _data_path(data_path) {
+HttpResponse::HttpResponse(int status_code, const string &status_msg, const string &connection,
+                           const string &data_path, const map<string, string> &content_types)
+    : HttpMessage(), _status_code(status_code), _status_msg(status_msg), _connection(connection) {
 
     string              file_time;
     Utils::t_file       file;
@@ -31,33 +32,49 @@ HttpResponse::HttpResponse(int status_code, string status_msg, string data_path,
             std::cout << "HttpResponse: Reading file error" << std::endl;
         }
         setData(file.data, file.data + file.size);
+        std::cout << "FILE TYPE: " << file.type << std::endl;
+        std::cout << "KEYS: " << std::endl;
+        for (map<string, string>::const_iterator it = content_types.begin(); it != content_types.cend(); ++it) {
+            std::cout << it->first << std::endl;
+        }
         _content_type = Utils::findKey(content_types.begin(), content_types.end(), file.type)->first;
+        std::cout << "KEY: " << _content_type << std::endl;
     }
     makeResponseHeader(file_time);
+    std::cout << "HttpResponse: Response header: " << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl;
+    std::cout << _header << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl;
 }
 
-HttpResponse::HttpResponse(int status_code, string status_msg, const char *data, size_t data_size, string content_type)
-: HttpMessage(), _status_code(status_code), _status_msg(status_msg), _content_type(content_type) {
+HttpResponse::HttpResponse(int status_code, const string &status_msg, const string &connection,
+                           const char *data, size_t data_size, string content_type)
+    : HttpMessage(), _status_code(status_code), _status_msg(status_msg), _connection(connection), _content_type(content_type) {
 
     string              file_time = Utils::getTime();
 
     setData(data, data + data_size);
     makeResponseHeader(file_time);
+    std::cout << "HttpResponse: Response header: " << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl;
+    std::cout << _header << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl;
 }
 
 HttpResponse::~HttpResponse() {}
 
 void HttpResponse::makeResponseHeader(const string &file_time) {
     _header.clear();
-    _header.append("HTTP/1.1 " + to_string(_status_code) + "\n");
-    _header.append("Date: " + Utils::getTime() + "\n");
+    _header.append("HTTP/1.1 " + to_string(_status_code) + " " + _status_msg + "\n");
     _header.append("Server: " + string("webserv") + "\n");  // TODO: serv name
+    _header.append("Date: " + Utils::getTime() + "\n");
+    if (!_content_type.empty())
+        _header.append("Content-Type: " + _content_type + "\n");
+    _header.append("Connection: " + _connection + "\n");
     if (_status_code == 200 || _status_code == 201)
         _header.append("Last-Modified: " + file_time + "\n");
     _header.append("Accept-Ranges: bytes\n");
-    _header.append("Content-Length: " + std::to_string(_content_length) + "\n");
-    if (!_content_type.empty())
-        _header.append("Content-Type: " + _content_type + "\n\n");
+    _header.append("Content-Length: " + to_string(_data.size()) + "\n\n");
 }
 
 HttpResponse *HttpResponse::createResponse(HttpRequest *request, WebServer *server) {
@@ -84,15 +101,18 @@ HttpResponse *HttpResponse::createGetResponse(HttpRequest *request, WebServer *s
     string                      path = "." + request->getPath();
     bool                        path_exist, path_access;
     const list<string>&         index_list = server->getIndexList();
-    const map<string, string>   content_types = server->getContentTypes();
+    const map<string, string>&  content_types = server->getContentTypes();
+    const string                connection = request->isKeepAlive() ? "keep-alive" : "close";
     bool                        _autoindex = false;  // TODO: autoindex value
 
-    if (path == "/") {
+    if (path == "./") {
         std::cout << "HttpResponse: Index is required" << std::endl;
 
         for (std::list<std::string>::const_iterator it = index_list.begin(); it != index_list.end(); ++it) {
+            std::cout << "HttpResponse: Searching " << *it << " in " << path << std::endl;
+            path_exist = Utils::isPathExist(path + *it);
             std::cout << "HttpResponse: Index existing: " << path_exist << std::endl;
-            if ((path_exist = Utils::isPathExist("." + *it))) {
+            if (path_exist) {
                 path += *it;
                 break;
             }
@@ -102,24 +122,24 @@ HttpResponse *HttpResponse::createGetResponse(HttpRequest *request, WebServer *s
     path_exist = Utils::isPathExist(path);
     std::cout << "HttpResponse: Path existing: " << path_exist << std::endl;
     if (!path_exist) {
-        return new HttpResponse(404, "NOT FOUND", "error_pages/404.html", content_types);
+        return new HttpResponse(404, "NOT FOUND", connection, "error_pages/404.html", content_types);
     }
     path_access = (access(path.c_str(), R_OK) == 0);
     std::cout << "HttpResponse: Path access: " << path_access << std::endl;
     if (!path_access) {
-        return new HttpResponse(403, "FORBIDDEN", "error_pages/403.html", content_types);
+        return new HttpResponse(403, "FORBIDDEN", connection, "error_pages/403.html", content_types);
     }
     if (path[path.length() - 1] == '/') {
         std::cout << "HttpResponse: Handling as directory..." << std::endl;
         if (!_autoindex) {
-            return new HttpResponse(403, "FORBIDDEN", "error_pages/403.html", content_types);
+            return new HttpResponse(403, "FORBIDDEN", connection, "error_pages/403.html", content_types);
         }
         string autoindex_page = makeAutoindexPage("./");
         size_t autoindex_size = autoindex_page.size();
 
-        return new HttpResponse(200, "OK", autoindex_page.c_str(), autoindex_size);
+        return new HttpResponse(200, "OK", connection, autoindex_page.c_str(), autoindex_size);
     }
-    return new HttpResponse(200, "OK", path, content_types);
+    return new HttpResponse(200, "OK", connection, path, content_types);
 }
 
 HttpResponse *HttpResponse::createPostResponse(HttpRequest *request, WebServer *server) {
@@ -142,18 +162,19 @@ HttpResponse *HttpResponse::createDeleteResponse(HttpRequest *request, WebServer
 
     bool                        path_exist, remove_ok;
     std::string                 path = "." + request->getUri();
+    const string                connection = request->isKeepAlive() ? "keep-alive" : "close";
 
     std::cout << "Path DELETE requested: " << path << std::endl;
     path_exist = !access(path.c_str(), F_OK);
     if (!path_exist)
-        return new HttpResponse(404, "NOT FOUND",
+        return new HttpResponse(404, "NOT FOUND", connection,
                                 "./error_pages/404.html", server->getContentTypes());
     remove_ok = !remove(path.c_str());
     if (!remove_ok)
-        return new HttpResponse(500, "INTERNAL SERVER ERROR",
+        return new HttpResponse(500, "INTERNAL SERVER ERROR", connection,
                                 "./error_pages/500.html", server->getContentTypes());
 
-    return new HttpResponse(200, "OK", "./deleted.html", server->getContentTypes());
+    return new HttpResponse(200, "OK", "./deleted.html", connection, server->getContentTypes());
 }
 
 //HttpResponse *HttpResponse::createErrorResponse(int status_code, string status_msg) {}
