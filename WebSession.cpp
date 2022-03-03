@@ -70,7 +70,57 @@ bool WebSession::receiveData(char *buffer, size_t &bytesRead) {
         std::cout << "Client " << getFd() << " has closed the connection" << std::endl;
         return false;
     }
+    std::cout << "WebSession: Data from client has been received" << std::endl;
     return true;
+}
+
+void WebSession::handleRequestPipeline(const char *buffer, size_t bytes_read) {
+
+}
+
+//const char* WebSession::handleHeaderEnd(const char *begin, const char *end) {
+//    std::cout << "WebSession " << getFd() << ": Trying to concatenate data..." << std::endl;
+//
+//    std::cout << "WebSession " << getFd() << ": Defining header end..." << std::endl;
+//    const char  *header_end = defineHeaderEnd(begin);
+//    if (!header_end) {
+//        std::cout << "WebSession " << getFd() << ": Header end not found. Saving data received for next handling..." << std::endl;
+//        if (_tmp_data.size() + end - begin > 4000) {
+//            std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
+//            _master->removeSession(this);
+//        }
+//        std::cout << "WebSession " << getFd() << ": Saving data received for next handling..." << std::endl;
+//        _tmp_data.insert(_tmp_data.end(), begin, end);
+//        return 0;
+//    }
+//    if (_tmp_data.size() + header_end - begin > 4000) {
+//        std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
+//        _master->removeSession(this);
+//        return;
+//    }
+//}
+
+HttpRequest* WebSession::retrieveRequestFromBuffer(const char *request_begin) {
+
+}
+
+size_t WebSession::addNewRequest(const string &type, const char *header_begin, const char *header_end, size_t buf_size) {
+
+    std::cout << "WebSession " << getFd() << ": Trying create new request..." << std::endl;
+    HttpRequest* new_request = HttpRequest::createRequest(type, header_begin,
+                                             header_end, buf_size);
+    if (!new_request) {
+        std::cout << "WebSession " << getFd() << ": 400 BAD REQUEST" << std::endl;
+        _master->removeSession(this);
+    }
+    if (new_request->getType() == "POST") {
+        std::cout << "WebSession " << getFd() << ": Preparing to handle POST data..." << std::endl;
+        handlePostData(new_request);
+    }
+    _request_list.push_back(new_request);
+    std::cout << "WebSession " << getFd() << ": New request has been added to list" << std::endl;
+
+    return new_request->getSize();
 }
 
 void WebSession::handleRequest() {
@@ -84,29 +134,51 @@ void WebSession::handleRequest() {
         _master->removeSession(this);
         return;
     }
-    std::cout << "WebSession " << getFd() << ": Data has been received" << std::endl;
-    std::cout << "WebSession " << getFd() << ": Bytes read: " << bytes_read << std::endl;
-    std::cout << "WebSession " << getFd() << ": Data: " << std::endl;
-    std::cout << "--------------------------------------------------" << std::endl;
-    std::cout << buffer << std::endl;
-    std::cout << "--------------------------------------------------" << std::endl;
+
+    {
+        std::cout << "WebSession " << getFd() << ": Data has been received" << std::endl;
+        std::cout << "WebSession " << getFd() << ": Bytes read: " << bytes_read << std::endl;
+        std::cout << "WebSession " << getFd() << ": Data: " << std::endl;
+        std::cout << "--------------------------------------------------" << std::endl;
+        std::cout << buffer << std::endl;
+        std::cout << "--------------------------------------------------" << std::endl;
+    } // system info output
 
     const char  *start;
     const char  *end;
 
-    if (!_tmp_data.empty()) { // data from client is received partially, it needs to be concatenated
+    if (!_tmp_data.empty()) { // data from client had been received partially, other part had been stored in temp buffer, it needs to be concatenated
+
         std::cout << "WebSession " << getFd() << ": Trying to concatenate data..." << std::endl;
 
-        size_t  extended_buf_size = _tmp_data.size() + bytes_read;
-        char    *extended_buf = new char[extended_buf_size];
+        std::cout << "WebSession " << getFd() << ": Defining header end..." << std::endl;
+        const char  *header_end = defineHeaderEnd(buffer);
+        if (!header_end) {
+            std::cout << "WebSession " << getFd() << ": Header end not found. Saving data received for next handling..." << std::endl;
+            if (_tmp_data.size() + bytes_read > 4000) {
+                std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
+                _master->removeSession(this);
+                return;
+            }
+            std::cout << "WebSession " << getFd() << ": Saving data received for next handling..." << std::endl;
+            _tmp_data.insert(_tmp_data.end(), buffer, buffer + bytes_read);
+            return;
+        }
+        if (_tmp_data.size() + header_end - buffer > 4000) {
+            std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
+            _master->removeSession(this);
+            return;
+        }
 
-        std::memcpy(extended_buf, _tmp_data.begin().base(), _tmp_data.size());
-        std::memcpy(extended_buf, buffer, bytes_read);
-
-        start = extended_buf;
-        end = extended_buf + extended_buf_size;
+        _tmp_data.insert(_tmp_data.end(), static_cast<const char*>(buffer), header_end);
+        
+        addNewRequest(_tmp_request_type, _tmp_data.begin().base(), header_end, _tmp_data.size());
+        _tmp_data.clear();
+        start = header_end;
+        end = buffer + bytes_read;
     } else { // data from client is fully received
-        std::cout << "WebSession " << getFd() << ": Data from client has been fully received" << std::endl;
+
+        std::cout << "WebSession " << getFd() << ": Temporary buffer is empty. Preparing to handle raw data..." << std::endl;
 
         start = buffer;
         end = buffer + bytes_read;
@@ -133,11 +205,11 @@ void WebSession::handleRequest() {
         }
     }
 
+
     int         num_chars_to_skip;
     const char  *request_begin;
     string      request_type;
     const char  *header_end;
-    HttpRequest *new_request;
 
     for (; start < end ;) {
 //        std::cout << "WebSession " << getFd() << ": Start address: " << (void*)start << std::endl;
@@ -146,11 +218,15 @@ void WebSession::handleRequest() {
         num_chars_to_skip = countControlCharSequenceLen(start, end);
         std::cout << "WebSession " << getFd() << ": Number of control chars to skip: " << num_chars_to_skip << std::endl;
         request_begin = start + num_chars_to_skip;
-        std::cout << "WebSession " << getFd() << ": Request begin: " << std::endl;
-        std::cout << "--------------------------------------------------" << std::endl;
-        std::cout << request_begin << std::endl;
-        std::cout << "--------------------------------------------------" << std::endl;
-        std::cout << "WebSession " << getFd() << ": Defining request type..." << std::endl;
+
+        {
+            std::cout << "WebSession " << getFd() << ": Request begin: " << std::endl;
+            std::cout << "--------------------------------------------------" << std::endl;
+            std::cout << request_begin << std::endl;
+            std::cout << "--------------------------------------------------" << std::endl;
+            std::cout << "WebSession " << getFd() << ": Defining request type..." << std::endl;
+        } // system info output
+
         request_type = defineRequestType(request_begin);
         std::cout << "WebSession " << getFd() << ": Request type: " << request_type << std::endl;
 
@@ -160,35 +236,29 @@ void WebSession::handleRequest() {
             // create BAD REQUEST and add it to list
             return;
         }
-
         std::cout << "WebSession " << getFd() << ": Defining header end..." << std::endl;
         header_end = defineHeaderEnd(request_begin);
-//        if (header_end)
-//            std::cout << "WebSession " << getFd() << ": Header end - 5: " << header_end - 5 << std::endl;
         if (!header_end) {
-            std::cout << "WebSession " << getFd() << ": Saving data received for next handling..." << std::endl;
+            if (end - request_begin > 4000) {
+                std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
+                _master->removeSession(this);
+                return;
+            }
+            std::cout << "WebSession " << getFd() << ": Header end not found. Saving data received for next handling..." << std::endl;
+            _tmp_request_type = request_type;
             _tmp_data.assign(request_begin, end);
             return;
         }
-        std::cout << "WebSession " << getFd() << ": Trying create new request..." << std::endl;
-        new_request = HttpRequest::createRequest(request_type, request_begin,
-                                                 header_end, bytes_read - num_chars_to_skip);
-        if (!new_request) {
-            std::cout << "WebSession " << getFd() << ": 400 BAD REQUEST" << std::endl;
+        std::cout << "WebSession " << getFd() << ": Header end exists" << std::endl;
+//        std::cout << "WebSession " << getFd() << ": Header end - 5: " << header_end - 5 << std::endl;
+        if (header_end - request_begin > 4000) {
+            std::cout << "WebSession " << getFd() << ": Entity too large" << std::endl;
             _master->removeSession(this);
             return;
         }
-
-        if (new_request->getType() == "POST") {
-            std::cout << "WebSession " << getFd() << ": Preparing to handle POST data..." << std::endl;
-            handlePostData(new_request);
-        }
-
-        _request_list.push_back(new_request);
-        std::cout << "WebSession " << getFd() << ": New request has been added to list" << std::endl;
-        start += new_request->getSize();
+        size_t request_size = addNewRequest(request_type, request_begin, header_end, bytes_read - num_chars_to_skip);
+        start += request_size;
     }
-    _tmp_data.clear();
 }
 
 bool WebSession::handlePostData(HttpRequest *request) {

@@ -56,6 +56,7 @@ class WebSession : public FdHandler {
     bool                _request_received;
     WebServer           *_master;
     HttpRequest*        _request;
+    string              _tmp_request_type;
     vector<char>        _tmp_data;
     list<HttpRequest*>  _request_list;
     CgiHandler          *_cgi;
@@ -66,6 +67,11 @@ class WebSession : public FdHandler {
     string              defineRequestType(const char *begin);
     const char*         defineHeaderEnd(const char *begin);
     void                handleRequest();
+    size_t              addNewRequest(const string &type, const char *header_begin,
+                                      const char *header_end, size_t buf_size);
+//    const char*          handleHeaderEnd(const char *begin, const char *end);
+    HttpRequest*        retrieveRequestFromBuffer(const char *request_begin);
+    void                handleRequestPipeline(const char *buffer, size_t bytes_read);
     void                handleResponse();
     void                sendResponse(HttpResponse *response);
     bool                wantBeWritten() const;
