@@ -12,13 +12,17 @@
 
 #include "WebServer.hpp"
 
-WebServer::WebServer(EventSelector *event_selector, int fd)
-: FdHandler(fd, true), _event_selector(event_selector) {
+int WebServer::id_generator = -1;
 
+WebServer::WebServer(EventSelector *event_selector, int fd, const Config &config)
+    : FdHandler(fd, true), _event_selector(event_selector), _config(config), _display_name("webserv") {
+
+    _id = ++id_generator;
+    initServerTraits();
+    initLocations();
     initContentTypes();
     std::cout << "WebServer: Joining to EventSelector..." << std::endl;
     _event_selector->add(this);
-    _index_list.push_back("index.html");
 }
 
 WebServer::~WebServer() {
@@ -29,7 +33,7 @@ WebServer::~WebServer() {
     _event_selector->remove(this);
 }
 
-WebServer *WebServer::start(EventSelector *event_selector, int port) {
+WebServer *WebServer::start(EventSelector *event_selector, int port, const Config &config) {
 
     int                 listen_socket, option, result;
     struct sockaddr_in  addr;
@@ -58,7 +62,7 @@ WebServer *WebServer::start(EventSelector *event_selector, int port) {
     if (result == -1)
         return 0;
 
-    return new WebServer(event_selector, listen_socket);
+    return new WebServer(event_selector, listen_socket, config);
 }
 
 void WebServer::Handle(bool read, bool write) {
@@ -93,6 +97,91 @@ void WebServer::removeSession(WebSession *session) {
             delete *it;
             return;
         }
+    }
+}
+
+void WebServer::initServerTraits() {
+    std::cout << "WebServer: Initializing server's traits..." << std::endl;
+
+    initSingleTrait(_server_name, "server_name");
+    initSingleTrait(_listen_addr, "listen");
+    initSingleTrait(_traits._root, "root");
+    initSingleTrait(_traits._autoindex, "autoindex", Utils::strToBool);
+    initSingleTrait(_traits._client_body_size, "client_body_size", Utils::strToLongLong);
+    initMultipleTrait(_traits._methods_list, "methods");
+    initMultipleTrait(_traits._index_list, "index");
+
+//    for (list<string>::const_iterator it = _traits._index_list.cbegin(); it != _traits._index_list.end(); ++it) {
+//        std::cout << *it << std::endl;
+//    }
+//
+//    for (list<string>::const_iterator it = _traits._methods_list.cbegin(); it != _traits._methods_list.end(); ++it) {
+//        std::cout << *it << std::endl;
+//    }
+}
+
+void WebServer::initLocations() {
+    std::cout << "WebServer: Initializing locations' traits..." << std::endl;
+
+    const set<string> &locations = _config.getServerLocations(_id);
+
+    for (set<string>::const_iterator location_iter = locations.cbegin(); location_iter != locations.cend(); ++location_iter) {
+        LocationTraits  location(_traits, *location_iter);
+
+        string  trait_name = "location " + *location_iter;
+        initSingleTrait(location._root, trait_name + ".root");
+        initSingleTrait(location._client_body_size, trait_name + ".client_body_size", Utils::strToLongLong);
+        initSingleTrait(location._autoindex, trait_name + ".autoindex", Utils::strToBool);
+        initMultipleTrait(location._index_list, trait_name + ".index");
+        initMultipleTrait(location._methods_list, trait_name + ".methods");
+        _location_list.push_front(location);
+
+        std::cout << "location: " << *location_iter << std::endl;
+        std::cout << "root: " << location.getRoot() << std::endl;
+        std::cout << "client_body_size: " << location.getClientBodySize() << std::endl;
+        std::cout << "autoindex: " << location.isAutoindex() << std::endl;
+
+        const list<string> &methods_list = location.getMethodsList();
+
+        for (list<string>::const_iterator it = methods_list.cbegin(); it != methods_list.cend(); ++it) {
+            std::cout << *it;
+            std::cout << " ";
+        }
+        std::cout << "" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+    }
+}
+
+void WebServer::initSingleTrait(string &trait, const string &trait_name) {
+    if (_config.hasServerTrait(_id, trait_name)) {
+        trait = _config[to_string(_id) + ".server." + trait_name];
+    }
+}
+
+template <class T>
+void WebServer::initSingleTrait(T &trait, const string &trait_name, T (*strToT)(const string &str)) {
+
+    if (_config.hasServerTrait(_id, trait_name)) {
+        try {
+            trait = strToT(_config[to_string(_id) + ".server." + trait_name]);
+        } catch (std::exception&) {
+            trait = T();
+        }
+    }
+}
+
+void WebServer::initMultipleTrait(list<string> &trait_list, const string &trait_name) {
+    if (!_config.hasServerTrait(_id, trait_name))
+    {
+        std::cout << "trait_name: " << trait_name << "$ return" << std::endl;
+        return;
+    }
+    std::cout << "here" << std::endl;
+    trait_list.clear();
+    vector<string>    traits = Utils::split(_config[to_string(_id) + ".server." + trait_name], ',');
+
+    for (vector<string>::iterator it = traits.begin(); it != traits.end(); ++it) {
+        trait_list.push_front(*it);
     }
 }
 
@@ -171,8 +260,8 @@ void WebServer::initContentTypes() {
     _content_types.insert(std::make_pair("7z", "application/x-7z-compressed"));
 }
 
-const list<Location *> WebServer::getLocationList() const { return _location_list; }
+//const list<Location *> WebServer::getLocationList() const { return _location_list; }
 
 const map<string, string> WebServer::getContentTypes() const { return _content_types; }
 
-const list<string> &WebServer::getIndexList() const { return _index_list; }
+const list<string> &WebServer::getIndexList() const { return _traits._index_list; }

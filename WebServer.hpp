@@ -23,8 +23,8 @@
 #include "FdHandler.hpp"
 #include "EventSelector.hpp"
 #include "WebSession.hpp"
-#include "Location.hpp"
 #include "Utils.hpp"
+#include "Config.hpp"
 
 using namespace std;
 
@@ -38,29 +38,89 @@ public:
 
     ~WebServer();
 
-    static WebServer*           start(EventSelector *event_selector, int port);
+    static WebServer*           start(EventSelector *event_selector, int port, const Config &config);
     void                        removeSession(WebSession *session);
-    void                        initContentTypes();
 
     const list<string>&         getIndexList() const;
-    const list<Location*>       getLocationList() const;
+//    const list<Location*>       getLocationList() const;
     const map<string, string>   getContentTypes() const;
 
+    static int  id_generator;
+
+
+protected:
+
+    class ServTraits {
+
+        friend class WebServer;
+
+    public:
+
+        const string&       getRoot() const { return _root; }
+        long long           getClientBodySize() const { return _client_body_size; }
+        const list<string>  getIndexList() const { return _index_list; }
+        const list<string>  getMethodsList() const { return _methods_list; }
+        bool                isAutoindex() const { return _autoindex; }
+
+        void                setRoot(const string &root) { _root = root; }
+        void                setClientBodySize(long long client_body_size) { _client_body_size = client_body_size; }
+        void                setIndexList(const list<string> &index_list) { _index_list = index_list; }
+        void                setMethodsList(const list<string> &methods_list) { _methods_list = methods_list; }
+        void                setAutoindex(bool value) { _autoindex = value; }
+
+    private:
+
+        ServTraits() {};
+
+        string          _root;
+        long long       _client_body_size;
+        bool            _autoindex;
+        list<string>    _index_list;
+        list<string>    _methods_list;
+
+    };
+
+    class LocationTraits : public ServTraits {
+
+    public:
+
+        LocationTraits(const ServTraits &serv_traits, const string &url)
+        : ServTraits(serv_traits), _url(url) {};
+
+        const string&   getUrl() const { return _url; }
+
+        void            setUrl(const string &url) { _url = url; }
+
+    private:
+
+        string      _url;
+    };
 
 private:
 
-    WebServer(EventSelector *event_selector, int fd);
+    WebServer(EventSelector *event_selector, int fd, const Config &config);
 
     virtual void        Handle(bool read, bool write);
+    void                initServerTraits();
+    void                initLocations();
+    void                initContentTypes();
+    template <class T>
+    void                initSingleTrait(T &trait, const string &trait_name, T (*strToT)(const string &str));
+    void                initSingleTrait(string &trait, const string &trait_name);
+    void                initMultipleTrait(list<string> &trait_list, const string &trait_name);
 
-    EventSelector       *_event_selector;
-    list<WebSession*>   _session_list;
-    string              _default_root;
-    string              _server_name;
-    long long           _client_body_size;
-    list<string>        _index_list;
-    list<Location*>     _location_list;
-    map<string, string> _content_types;
+    EventSelector           *_event_selector;
+    list<WebSession*>       _session_list;
+    int                     _id;
+    string                  _display_name;
+    string                  _listen_addr;
+    string                  _server_name;
+    ServTraits              _traits;
+    list<LocationTraits>    _location_list;
+    const Config            &_config;
+
+    map<string, string>     _content_types;
+
 
 
 };

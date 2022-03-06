@@ -8,6 +8,8 @@ vector<string> Utils::split(const string &str, char ch) {
 
     vector<string> result;
 
+    if (str.empty())
+        return result;
     if (str.length() > 0 && str.find(ch) == string::npos) {
         result.push_back(str);
         return (result);
@@ -27,6 +29,8 @@ vector<string> Utils::split(const string &str, char ch) {
 vector<string> Utils::split(const string &str, const string &val) {
     vector<string> result;
 
+    if (str.empty())
+        return result;
     if (str.length() > 0 && str.find(val) == string::npos) {
         result.push_back(str);
         return (result);
@@ -213,7 +217,15 @@ Utils::findKey(map<string, string>::const_iterator begin, map<string, string>::c
     return end;
 }
 
+bool Utils::strToBool(const string &str) {
+    if (str == "on" || str == "1" || str == "true")
+        return true;
+    return false;
+}
 
+long long Utils::strToLongLong(const string &str) {
+    return stoll(str);
+}
 
 //template <class T1, class T2>
 //const typename map<T1, T2>::const_iterator

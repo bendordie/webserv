@@ -7,6 +7,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <set>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ class Config {
 	vector<map<string, string> > servers;
 	Config() {};
 public:
-	virtual ~Config() {};
+	~Config() {};
 
 	explicit Config(const string& path) {
 		ifstream file;
@@ -99,6 +100,46 @@ public:
 
 		}
 	};
+
+    set<string> getServerLocations(int idx) const {
+        set<string> tmp;
+
+        for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
+
+            if (it->first.find("server.location /") == 0) {
+                int start_pos = it->first.find("/");
+                tmp.insert(it->first.substr(start_pos, it->first.find(".", start_pos) - start_pos));
+            }
+        }
+
+        return tmp;
+    }
+
+    bool hasServerTrait(int idx, const string& trait_name) const {
+
+        for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
+            int find_idx = it->first.find(trait_name);
+            if (find_idx == strlen("server.")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool hasLocationTrait(int idx, const string& location, const string& trait_name) const {
+
+        for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
+
+            int find_idx = it->first.find(location + "." + trait_name);
+            if (find_idx == strlen("server.location") + location.length()) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
 
 	size_t size() {
 		return servers.size();

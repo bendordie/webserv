@@ -36,17 +36,22 @@ namespace Utils {
 
 //    typedef map<string, string>::const_iterator t_map_const_iter;
 
-    vector<string>              split(const string &str, char ch);
-    vector<string>              split(const string &str, const string &val);
-    string                      getTime();
-    string                      getExtension(const string& file_name);
-    bool                        searchFileInDir(const char* dir_path, const char* file_name);
-    bool                        isPathAccessed(const string &path);
-    bool                        getDirContent(const char* dir_path, list<struct dirent> &content);
-    string                      getFileLastModTime(const string &file_path);
-    bool                        isPathExist(const string &path);
-    t_file                      readFile(string file_path);
-    map<string, string>::const_iterator            findKey(map<string, string>::const_iterator begin, map<string, string>::const_iterator end, const string &value);
+    vector<string>                         split(const string &str, char ch);
+    vector<string>                         split(const string &str, const string &val);
+    string                                 getTime();
+    string                                 getExtension(const string& file_name);
+    bool                                   searchFileInDir(const char* dir_path, const char* file_name);
+    bool                                   isPathAccessed(const string &path);
+    bool                                   getDirContent(const char* dir_path, list<struct dirent> &content);
+    string                                 getFileLastModTime(const string &file_path);
+    bool                                   isPathExist(const string &path);
+    t_file                                 readFile(string file_path);
+    bool                                   strToBool(const string &str);
+    long long                              strToLongLong(const string &str);
+    map<string, string>::const_iterator    findKey(map<string, string>::const_iterator begin, map<string, string>::const_iterator end, const string &value);
+
+//    template <class T>
+//    typename T convertFromStr(const string &str, )
 
 //    template<class T1, class T2>
 //    const typename std::map<T1, T2>::const_iterator

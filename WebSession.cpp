@@ -44,6 +44,7 @@ std::string WebSession::defineRequestType(const char *begin) {
 }
 
 const char* WebSession::defineHeaderEnd(const char *begin) {
+    std::cout << "WebSession " << getFd() << ": Defining header end..." << std::endl;
 
     const char    *header_end;
 
@@ -171,7 +172,6 @@ void WebSession::handleRequest() {
 
         std::cout << "WebSession " << getFd() << ": Trying to concatenate data..." << std::endl;
 
-        std::cout << "WebSession " << getFd() << ": Defining header end..." << std::endl;
         const char  *header_end = defineHeaderEnd(buffer);
         if (!header_end) {
             if (_tmp_data.size() + bytes_read > 4000) {
@@ -188,9 +188,7 @@ void WebSession::handleRequest() {
             _master->removeSession(this);
             return;
         }
-
         _tmp_data.insert(_tmp_data.end(), static_cast<const char*>(buffer), header_end);
-        
         addNewRequest(_tmp_request_type, _tmp_data.begin().base(), header_end, _tmp_data.size());
         _tmp_data.clear();
         start = header_end;

@@ -3,6 +3,8 @@ server {		# just for testing. there is nothing interesting
    server_name          10.21.23.103;
    root            /Users/cmarsha/Desktop/webserv;
    client_body_size   1000000010;
+   index index.html, index.htm, index.php;
+   methods POST, PUT, DELETE;
    location /put_test/ {
 	   root            /Users/cmarsha/Desktop/webserv;
 		methods       PUT;
@@ -20,11 +22,11 @@ server {		# just for testing. there is nothing interesting
 		root        /Users/cmarsha/Desktop/webserv/YoupiBanane;
 		index       youpi.bad_extension;
 		cgi_path    /Users/cmarsha/Desktop/webserv/cgi_tester;
-		cgi         bla;
+		cgi         location;
 	}
 	location / {
 		root      /Users/cmarsha/Desktop/webserv;
-		autoindex   On;
+		autoindex   on;
 	} }
 server {
 	listen 10.21.23.103:1027 ;
@@ -62,8 +64,7 @@ server {
 # root only on localhost
 server { listen 127.0.0.1:1027 ;
 	server_name 127.0.0.1;
-	methods GET, POST;
-	client_body_size   1000000010;
+	methods GET, POST;	client_body_size   1000000010;
 	404 404new.html;
 	location /ttt {
 		root            /Users/cmarsha;
