@@ -42,7 +42,7 @@ public:
     static HttpResponse*    createPostResponse(HttpRequest *request, WebServer *server);
     static HttpResponse*    createDeleteResponse(HttpRequest *request, WebServer *server);
     void                    makeResponseHeader(const string &file_time);
-    static string           makeAutoindexPage(string path);
+    static string           makeAutoindexPage(const string &uri, const string &abs_path);
     static string           makeAutoindexLine(list<struct dirent>::iterator file, const string &path);
 //    static HttpResponse*       createNoBodyResponse(int status_code, string status_msg, string body_path = "");
 

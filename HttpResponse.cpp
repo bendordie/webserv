@@ -32,13 +32,17 @@ HttpResponse::HttpResponse(int status_code, const string &status_msg, const stri
             std::cout << "HttpResponse: Reading file error" << std::endl;
         }
         setData(file.data, file.data + file.size);
-        std::cout << "FILE TYPE: " << file.type << std::endl;
-        std::cout << "KEYS: " << std::endl;
-        for (map<string, string>::const_iterator it = content_types.begin(); it != content_types.cend(); ++it) {
-            std::cout << it->first << std::endl;
-        }
-        _content_type = Utils::findKey(content_types.begin(), content_types.end(), file.type)->first;
-        std::cout << "KEY: " << _content_type << std::endl;
+//        std::cout << "FILE TYPE: " << file.type << std::endl;
+//        std::cout << "KEYS: " << std::endl;
+//        for (map<string, string>::const_iterator it = content_types.begin(); it != content_types.cend(); ++it) {
+//            std::cout << it->first << std::endl;
+//        }
+        map<string, string>::const_iterator it = content_types.find("html");
+        if (it != content_types.end())
+            _content_type = it->second;
+        else
+            _content_type = "text/html";
+
     }
     makeResponseHeader(file_time);
     std::cout << "HttpResponse: Response header: " << std::endl;
@@ -94,52 +98,82 @@ HttpResponse *HttpResponse::createResponse(HttpRequest *request, WebServer *serv
    return new HttpResponse(405, "NOT ALLOWED");
 }
 
+//void    definePath(string& result_path, const string& requested_path, const list<LocationTraits>& location_list) {
+//    for (list<LocationTraits>::const_iterator it = location_list.cbegin(); it != location_list.cend(); ++it) {
+//        if ((*it) == requested_path)
+//    }
+//};
+
 HttpResponse *HttpResponse::createGetResponse(HttpRequest *request, WebServer *server) {
 
     std::cout << "HttpResponse: Creating GET response..." << std::endl;
 
-    string                      path = "." + request->getPath();
     bool                        path_exist, path_access;
-    const list<string>&         index_list = server->getIndexList();
+
     const map<string, string>&  content_types = server->getContentTypes();
     const string                connection = request->isKeepAlive() ? "keep-alive" : "close";
-    bool                        _autoindex = false;  // TODO: autoindex value
 
-    if (path == "./") {
+
+    string                          abs_path;
+    string                          root;
+    list<string>                    index_list;
+    bool                            autoindex;
+    const string                    &requested_path = request->getPath();
+
+    std::cout << "HttpResponse: Defining location..." << std::endl;
+    const WebServer::ServerTraits   *server_traits = server->getLocationTraits(requested_path);
+    const WebServer::LocationTraits *location_traits = dynamic_cast<const WebServer::LocationTraits*>(server_traits);
+    std::cout << "HttpResponse: Defining location is done" << std::endl;
+    if (location_traits) {
+//        root = location_traits->getRoot();
+        abs_path = location_traits->getRoot() + requested_path;
+        index_list = location_traits->getIndexList();
+        autoindex = location_traits->isAutoindex();
+    } else {
+//        root = server_traits->getRoot();
+        abs_path =  server_traits->getRoot() + requested_path;
+        index_list = server_traits->getIndexList();
+        autoindex = server_traits->isAutoindex();
+    }
+
+//    std::cout << "PATH! :" << path << std::endl;
+
+    if (requested_path == "/") {
         std::cout << "HttpResponse: Index is required" << std::endl;
 
         for (std::list<std::string>::const_iterator it = index_list.begin(); it != index_list.end(); ++it) {
-            std::cout << "HttpResponse: Searching " << *it << " in " << path << std::endl;
-            path_exist = Utils::isPathExist(path + *it);
+            std::cout << "HttpResponse: Searching " << *it << " in " << abs_path << std::endl;
+            path_exist = Utils::isPathExist(abs_path + *it);
             std::cout << "HttpResponse: Index existing: " << path_exist << std::endl;
             if (path_exist) {
-                path += *it;
+                abs_path += *it;
                 break;
             }
         }
     }
-    std::cout << "HttpResponse: Path required: " << path << std::endl;
-    path_exist = Utils::isPathExist(path);
+    std::cout << "HttpResponse: Path required: " << abs_path << std::endl;
+    path_exist = Utils::isPathExist(abs_path);
     std::cout << "HttpResponse: Path existing: " << path_exist << std::endl;
     if (!path_exist) {
         return new HttpResponse(404, "NOT FOUND", connection, "error_pages/404.html", content_types);
     }
-    path_access = (access(path.c_str(), R_OK) == 0);
+    path_access = (access(abs_path.c_str(), R_OK) == 0);
     std::cout << "HttpResponse: Path access: " << path_access << std::endl;
     if (!path_access) {
         return new HttpResponse(403, "FORBIDDEN", connection, "error_pages/403.html", content_types);
     }
-    if (path[path.length() - 1] == '/') {
+    if (abs_path[abs_path.length() - 1] == '/') {
         std::cout << "HttpResponse: Handling as directory..." << std::endl;
-        if (!_autoindex) {
+
+        if (!autoindex) {
             return new HttpResponse(403, "FORBIDDEN", connection, "error_pages/403.html", content_types);
         }
-        string autoindex_page = makeAutoindexPage("./");
+        string autoindex_page = makeAutoindexPage(requested_path, abs_path);
         size_t autoindex_size = autoindex_page.size();
 
         return new HttpResponse(200, "OK", connection, autoindex_page.c_str(), autoindex_size);
     }
-    return new HttpResponse(200, "OK", connection, path, content_types);
+    return new HttpResponse(200, "OK", connection, abs_path, content_types);
 }
 
 HttpResponse *HttpResponse::createPostResponse(HttpRequest *request, WebServer *server) {
@@ -179,25 +213,25 @@ HttpResponse *HttpResponse::createDeleteResponse(HttpRequest *request, WebServer
 
 //HttpResponse *HttpResponse::createErrorResponse(int status_code, string status_msg) {}
 
-string HttpResponse::makeAutoindexPage(string path) {
+string HttpResponse::makeAutoindexPage(const string &uri, const string &abs_path) {
     std::cout << "HttpResponse: Preparing autoindex page..." << std::endl;
 
     std::string res = "<html>\n"
                        "<head><title>Index of ";
 
 
-    res += &path[1];
+    res += uri;
     res += "</title></head>\n"
             "<body bgcolor=\"white\">\n"
             "<h1>Index of ";
-    res += &path[1];
+    res += uri;
     res += "</h1><hr><pre><a href=\"../\">../</a>\n";
     std::list<struct dirent>  content;
-    Utils::getDirContent(path.c_str(), content);
+    Utils::getDirContent(abs_path.c_str(), content);
     for (std::list<struct dirent>::iterator it = content.begin(); it != content.end(); ++it) {
         if (!strcmp(it->d_name, ".") || !strcmp(it->d_name, ".."))
             continue;
-        res += makeAutoindexLine(it, path);
+        res += makeAutoindexLine(it, abs_path);
     }
     res += "</pre><hr></body>\n"
             "</html>";

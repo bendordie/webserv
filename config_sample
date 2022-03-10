@@ -1,7 +1,7 @@
 server {		# just for testing. there is nothing interesting
    listen              10.21.23.103:1027;
    server_name          10.21.23.103;
-   root            /Users/cmarsha/Desktop/webserv;
+   root            /Users/cshells/Desktop/git_webserv;
    client_body_size   1000000010;
    index index.html, index.htm, index.php;
    methods POST, PUT, DELETE;
@@ -25,7 +25,7 @@ server {		# just for testing. there is nothing interesting
 		cgi         location;
 	}
 	location / {
-		root      /Users/cmarsha/Desktop/webserv;
+		root      /Users/cshells/Desktop/git_webserv;
 		autoindex   on;
 	} }
 server {

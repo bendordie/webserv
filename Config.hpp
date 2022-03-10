@@ -45,7 +45,7 @@ public:
 				else if ((line[idx] == ' ' || line[idx] == '\t') && !isQuotes) {
 					if (!currentProperty.empty()) {
 
-						properties.push_back(to_lower(currentProperty));
+						properties.push_back(currentProperty);
 						currentProperty.erase();
 					}
 					idx++;
@@ -60,7 +60,7 @@ public:
 				idx++;
 			}
 			if (!currentProperty.empty()) {
-				properties.push_back(to_lower(currentProperty));
+				properties.push_back(currentProperty);
 				currentProperty.erase();
 			}
 		}
@@ -115,7 +115,7 @@ public:
         return tmp;
     }
 
-    bool hasServerTrait(int idx, const string& trait_name) const {
+    bool isTraitDefined(int idx, const string& trait_name) const {
 
         for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
             int find_idx = it->first.find(trait_name);
@@ -127,19 +127,19 @@ public:
         return false;
     }
 
-    bool hasLocationTrait(int idx, const string& location, const string& trait_name) const {
-
-        for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
-
-            int find_idx = it->first.find(location + "." + trait_name);
-            if (find_idx == strlen("server.location") + location.length()) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }
+//    bool hasLocationTrait(int idx, const string& location, const string& trait_name) const {
+//
+//        for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
+//
+//            int find_idx = it->first.find(location + "." + trait_name);
+//            if (find_idx == strlen("server.location") + location.length()) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//
+//    }
 
 	size_t size() {
 		return servers.size();

@@ -64,6 +64,7 @@ class WebSession : public FdHandler {
     bool                receiveData(char *buffer, size_t &bytesRead);
     bool                handlePostData(HttpRequest *request);
     int                 countControlCharSequenceLen(const char *start, const char *end);
+    bool                isRequestLineValid(const char *request_begin) const;
     string              defineRequestType(const char *begin);
     const char*         defineHeaderEnd(const char *begin);
     void                handleRequest();

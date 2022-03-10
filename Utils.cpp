@@ -210,12 +210,24 @@ Utils::t_file Utils::readFile(string file_path) {
 map<string, string>::const_iterator
 Utils::findKey(map<string, string>::const_iterator begin, map<string, string>::const_iterator end,
                const string &value) {
+
     for (; begin != end; ++begin) {
         if (value == begin->second)
             return begin;
     }
     return end;
 }
+
+//template <class T1, class T2>
+//const typename map<T1, T2>::const_iterator
+//Utils::findKey(typename map<T1, T2>::const_iterator begin, typename map<T1, T2>::const_iterator end,
+//        const T2 &value) {
+//    for (; begin != end; ++begin) {
+//        if (begin->second == value)
+//            return begin;
+//    }
+//    return end;
+//}
 
 bool Utils::strToBool(const string &str) {
     if (str == "on" || str == "1" || str == "true")

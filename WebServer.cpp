@@ -103,13 +103,15 @@ void WebServer::removeSession(WebSession *session) {
 void WebServer::initServerTraits() {
     std::cout << "WebServer: Initializing server's traits..." << std::endl;
 
+    _traits = new WebServer::ServerTraits();
     initSingleTrait(_server_name, "server_name");
     initSingleTrait(_listen_addr, "listen");
-    initSingleTrait(_traits._root, "root");
-    initSingleTrait(_traits._autoindex, "autoindex", Utils::strToBool);
-    initSingleTrait(_traits._client_body_size, "client_body_size", Utils::strToLongLong);
-    initMultipleTrait(_traits._methods_list, "methods");
-    initMultipleTrait(_traits._index_list, "index");
+    initSingleTrait(_traits->_root, "root");
+    initSingleTrait(_traits->_autoindex, "autoindex", Utils::strToBool);
+    initSingleTrait(_traits->_client_body_size, "client_body_size", Utils::strToLongLong);
+    initMultipleTrait(_traits->_methods_list, "methods");
+    initMultipleTrait(_traits->_index_list, "index");
+//    _traits->removeLastSlashInRoot();
 
 //    for (list<string>::const_iterator it = _traits._index_list.cbegin(); it != _traits._index_list.end(); ++it) {
 //        std::cout << *it << std::endl;
@@ -126,22 +128,23 @@ void WebServer::initLocations() {
     const set<string> &locations = _config.getServerLocations(_id);
 
     for (set<string>::const_iterator location_iter = locations.cbegin(); location_iter != locations.cend(); ++location_iter) {
-        LocationTraits  location(_traits, *location_iter);
+        LocationTraits  *location = new LocationTraits(*_traits, *location_iter);
 
         string  trait_name = "location " + *location_iter;
-        initSingleTrait(location._root, trait_name + ".root");
-        initSingleTrait(location._client_body_size, trait_name + ".client_body_size", Utils::strToLongLong);
-        initSingleTrait(location._autoindex, trait_name + ".autoindex", Utils::strToBool);
-        initMultipleTrait(location._index_list, trait_name + ".index");
-        initMultipleTrait(location._methods_list, trait_name + ".methods");
+        initSingleTrait(location->_root, trait_name + ".root");
+        initSingleTrait(location->_client_body_size, trait_name + ".client_body_size", Utils::strToLongLong);
+        initSingleTrait(location->_autoindex, trait_name + ".autoindex", Utils::strToBool);
+        initMultipleTrait(location->_index_list, trait_name + ".index");
+        initMultipleTrait(location->_methods_list, trait_name + ".methods");
+//        location->removeLastSlashInRoot();
         _location_list.push_front(location);
 
         std::cout << "location: " << *location_iter << std::endl;
-        std::cout << "root: " << location.getRoot() << std::endl;
-        std::cout << "client_body_size: " << location.getClientBodySize() << std::endl;
-        std::cout << "autoindex: " << location.isAutoindex() << std::endl;
+        std::cout << "root: " << location->getRoot() << std::endl;
+        std::cout << "client_body_size: " << location->getClientBodySize() << std::endl;
+        std::cout << "autoindex: " << location->isAutoindex() << std::endl;
 
-        const list<string> &methods_list = location.getMethodsList();
+        const list<string> &methods_list = location->getMethodsList();
 
         for (list<string>::const_iterator it = methods_list.cbegin(); it != methods_list.cend(); ++it) {
             std::cout << *it;
@@ -153,7 +156,7 @@ void WebServer::initLocations() {
 }
 
 void WebServer::initSingleTrait(string &trait, const string &trait_name) {
-    if (_config.hasServerTrait(_id, trait_name)) {
+    if (_config.isTraitDefined(_id, trait_name)) {
         trait = _config[to_string(_id) + ".server." + trait_name];
     }
 }
@@ -161,7 +164,7 @@ void WebServer::initSingleTrait(string &trait, const string &trait_name) {
 template <class T>
 void WebServer::initSingleTrait(T &trait, const string &trait_name, T (*strToT)(const string &str)) {
 
-    if (_config.hasServerTrait(_id, trait_name)) {
+    if (_config.isTraitDefined(_id, trait_name)) {
         try {
             trait = strToT(_config[to_string(_id) + ".server." + trait_name]);
         } catch (std::exception&) {
@@ -171,7 +174,7 @@ void WebServer::initSingleTrait(T &trait, const string &trait_name, T (*strToT)(
 }
 
 void WebServer::initMultipleTrait(list<string> &trait_list, const string &trait_name) {
-    if (!_config.hasServerTrait(_id, trait_name))
+    if (!_config.isTraitDefined(_id, trait_name))
     {
         std::cout << "trait_name: " << trait_name << "$ return" << std::endl;
         return;
@@ -260,8 +263,50 @@ void WebServer::initContentTypes() {
     _content_types.insert(std::make_pair("7z", "application/x-7z-compressed"));
 }
 
+//string WebServer::getUri(const string &path_requested) const {
+//
+//    list<WebServer::LocationTraits>::const_iterator it = _location_list.cbegin();
+//
+//    for (; it != _location_list.cend(); ++it) {
+//        if (it->_url == path_requested)
+//            break;
+//    }
+//    if (it == _location_list.cend())
+//        return "";
+//
+//    return it->_root + it->_url;
+//}
+
+//   /directory/papka/new/file.txt
+
+//   /directory/papka/new/
+//   /directory/papka/
+//   /directory/
+//   /
+
+const WebServer::ServerTraits *WebServer::getLocationTraits(const string &uri) const {
+
+    size_t  last_slash_pos = uri.length() - 1;
+
+    for (; last_slash_pos != 0; last_slash_pos = uri.rfind('/', last_slash_pos - 1)) {
+        list<WebServer::LocationTraits*>::const_iterator it = _location_list.begin();
+        for (; it != _location_list.end(); ++it) {
+            if ((*it)->_url.find(uri.substr(0, last_slash_pos)) == 0)
+                return *it;
+        }
+    }
+
+    return _traits;
+}
+
+//void WebServer::ServerTraits::removeLastSlashInRoot() {
+//    if (_root[_root.length() - 1] == '/') {
+//        _root = _root.replace(_root.length() - 1, 1, "");
+//    }
+//}
+
 //const list<Location *> WebServer::getLocationList() const { return _location_list; }
 
 const map<string, string> WebServer::getContentTypes() const { return _content_types; }
 
-const list<string> &WebServer::getIndexList() const { return _traits._index_list; }
+//const list<string> &WebServer::getIndexList() const { return _traits._index_list; }

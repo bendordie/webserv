@@ -32,6 +32,39 @@ int WebSession::countControlCharSequenceLen(const char *start, const char *end) 
     return i;
 }
 
+// ABCD /* HTTP/1.
+
+bool WebSession::isRequestLineValid(const char *request_begin) const {
+
+    const char *end = strchr(request_begin, '\r');
+    if (!end)
+        return false;
+
+    const char  *first_space = strchr(request_begin, ' ');
+    if (!first_space || !(first_space + 1))
+        return false;
+
+    const char  *second_space = strchr(first_space + 1, ' ');
+    if (!second_space || !(second_space + 1))
+        return false;
+
+    for (; *request_begin != ' '; ++request_begin) {
+        if (!isupper(*request_begin))
+            return false;
+    }
+    ++request_begin;
+    if (*request_begin != '/')
+        return false;
+
+    size_t  len = end - second_space - 1;
+
+    if (strncmp(second_space + 1, "HTTP/1.0", len) && strncmp(second_space + 1, "HTTP/1.1", len))
+        return false;
+
+    std::cout << "WebSession " << getFd() << ": Request line is valid" << std::endl;
+    return true;
+}
+
 std::string WebSession::defineRequestType(const char *begin) {
     if (!strncmp(begin, "GET", strlen("GET")))
         return "GET";
@@ -144,6 +177,8 @@ size_t WebSession::addNewRequest(const string &type, const char *header_begin, c
 //    }
 //}
 
+
+
 void WebSession::handleRequest() {
 
     char            *buffer = new char[buffer_size + 1];
@@ -205,18 +240,18 @@ void WebSession::handleRequest() {
 
                 std::cout << "WebSession " << getFd() << ": Receiving rest POST data" << std::endl;
 
-                size_t  remainder = (*it)->getRestDataSize();
+                size_t  data_remainder = (*it)->getRestDataSize();
 
-                if (remainder > bytes_read) {
+                if (data_remainder > bytes_read) {
                     (*it)->setData(start, end);
                     handlePostData((*it));
                     return;
                 }
-                (*it)->setData(start, start + remainder);
+                (*it)->setData(start, start + data_remainder);
                 handlePostData((*it));
                 (*it)->setFullReceivedFlag(true);
 
-                start += remainder;
+                start += data_remainder;
                 break;
             }
         }
@@ -243,6 +278,15 @@ void WebSession::handleRequest() {
             std::cout << "--------------------------------------------------" << std::endl;
             std::cout << "WebSession " << getFd() << ": Defining request type..." << std::endl;
         } // system info output
+
+
+        if (!isRequestLineValid(request_begin)) {
+            std::cout << "WebSession " << getFd() << ": Request line is invalid" << std::endl;
+            std::cout << "WebSession " << getFd() << ": 400 BAD REQUEST" << std::endl;
+            _master->removeSession(this);
+            // create BAD REQUEST and add it to list
+            return;
+        }
 
         request_type = defineRequestType(request_begin);
         std::cout << "WebSession " << getFd() << ": Request type: " << request_type << std::endl;
@@ -287,9 +331,19 @@ bool WebSession::handlePostData(HttpRequest *request) {
 
     std::cout << "WebSession " << getFd() << ": Handling POST data..." << std::endl;
 
+    const string                    &path = request->getPath();
+    const WebServer::ServerTraits   *server_traits = _master->getLocationTraits(path);
+    const WebServer::LocationTraits *location_traits = dynamic_cast<const WebServer::LocationTraits*>(server_traits);
+
+
+    if (location_traits) {
+        abs_path = location_traits->getRoot() + requested_path;
+    } else {
+        abs_path =  server_traits->getRoot() + requested_path;
+    }
+
     const char      *data_begin = request->getData().begin().base();
     const long      &data_size = request->getDataSize();
-    const string    &path = request->getPath();
     const string    &content_type = request->getContentType();
     string          uri = "." + path + "/data_from_client_fd_"
                           + std::to_string(getFd()) + "." + content_type;

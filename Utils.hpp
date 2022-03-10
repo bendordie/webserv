@@ -48,7 +48,20 @@ namespace Utils {
     t_file                                 readFile(string file_path);
     bool                                   strToBool(const string &str);
     long long                              strToLongLong(const string &str);
-    map<string, string>::const_iterator    findKey(map<string, string>::const_iterator begin, map<string, string>::const_iterator end, const string &value);
+
+//    template <class T1, class T2>
+//    const typename map<T1, T2>::const_iterator
+//    findKey(typename map<T1, T2>::const_iterator begin, typename map<T1, T2>::const_iterator end,
+//            const T2 &value) {
+//        for (; begin != end; ++begin) {
+//            if (begin->second == value)
+//                return begin;
+//        }
+//        return end;
+//    }
+
+    map<string, string>::const_iterator    findKey(map<string, string>::const_iterator begin, map<string,
+                                                   string>::const_iterator end, const string &value);
 
 //    template <class T>
 //    typename T convertFromStr(const string &str, )

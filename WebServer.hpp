@@ -32,6 +32,8 @@ using namespace std;
 
 class WebSession;
 
+class ServerTraits;
+
 class WebServer : public FdHandler {
 
 public:
@@ -41,18 +43,21 @@ public:
     static WebServer*           start(EventSelector *event_selector, int port, const Config &config);
     void                        removeSession(WebSession *session);
 
-    const list<string>&         getIndexList() const;
+//    const list<string>&         getIndexList() const;
+//    string                      getUri(const string& path_requested) const;
 //    const list<Location*>       getLocationList() const;
     const map<string, string>   getContentTypes() const;
 
     static int  id_generator;
 
 
-protected:
+public:
 
-    class ServTraits {
+    class ServerTraits {
 
         friend class WebServer;
+
+        virtual ~ServerTraits() {}
 
     public:
 
@@ -61,7 +66,6 @@ protected:
         const list<string>  getIndexList() const { return _index_list; }
         const list<string>  getMethodsList() const { return _methods_list; }
         bool                isAutoindex() const { return _autoindex; }
-
         void                setRoot(const string &root) { _root = root; }
         void                setClientBodySize(long long client_body_size) { _client_body_size = client_body_size; }
         void                setIndexList(const list<string> &index_list) { _index_list = index_list; }
@@ -70,7 +74,7 @@ protected:
 
     private:
 
-        ServTraits() {};
+        ServerTraits() {};
 
         string          _root;
         long long       _client_body_size;
@@ -78,16 +82,22 @@ protected:
         list<string>    _index_list;
         list<string>    _methods_list;
 
+//        void                removeLastSlashInRoot();
+
     };
 
-    class LocationTraits : public ServTraits {
+    class LocationTraits : public ServerTraits {
+
+        friend class WebServer;
 
     public:
 
-        LocationTraits(const ServTraits &serv_traits, const string &url)
-        : ServTraits(serv_traits), _url(url) {};
+        LocationTraits(const ServerTraits &serv_traits, const string &url)
+        : ServerTraits(serv_traits), _url(url) {};
 
         const string&   getUrl() const { return _url; }
+        string          getAbsolutePath() const { std::cout << "ROOT: " << _root << std::endl;
+            std::cout << "URL: " << _url << std::endl; return _root + _url; }
 
         void            setUrl(const string &url) { _url = url; }
 
@@ -95,6 +105,10 @@ protected:
 
         string      _url;
     };
+
+public:
+
+    const WebServer::ServerTraits*       getLocationTraits(const string& uri) const;
 
 private:
 
@@ -115,8 +129,8 @@ private:
     string                  _display_name;
     string                  _listen_addr;
     string                  _server_name;
-    ServTraits              _traits;
-    list<LocationTraits>    _location_list;
+    ServerTraits            *_traits;
+    list<LocationTraits*>   _location_list;
     const Config            &_config;
 
     map<string, string>     _content_types;
