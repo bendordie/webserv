@@ -1,35 +1,38 @@
 server {		# just for testing. there is nothing interesting
-   listen              10.21.23.103:1027;
+   listen              80;
    server_name          10.21.23.103;
-   root            /Users/cshells/Desktop/git_webserv;
+   root            /Users/cshells/Desktop/git_webserv/root;
    client_body_size   1000000010;
-   index index.html, index.htm, index.php;
-   methods POST, PUT, DELETE;
+   index index4.html, index.htm, index.php;
+   methods GET, POST, PUT, DELETE;
    location /put_test/ {
-	   root            /Users/cmarsha/Desktop/webserv;
+	   root            123/Users/cmarsha/Desktop/webserv;
 		methods       PUT;
 	}
 	location /post_body {
-		methods       POST;
+		methods       GET, POST;
 		client_body_size 1000000;
 		upload	/Upload ;
-		index index.html;
-		root    "/Users/cmarsha/Desktop/webserv/site 2";
+		index index2.html;
+		root    "456/Users/cmarsha/Desktop/webserv/site 2";
 		cgi         bla;
 	}
 	location /directory {
 		methods     POST;
-		root        /Users/cmarsha/Desktop/webserv/YoupiBanane;
+		root        789/Users/cmarsha/Desktop/webserv/YoupiBanane;
 		index       youpi.bad_extension;
-		cgi_path    /Users/cmarsha/Desktop/webserv/cgi_tester;
+		cgi_path    999/Users/cmarsha/Desktop/webserv/cgi_tester;
 		cgi         location;
 	}
 	location / {
+	    methods GET, POST, DELETE;
 		root      /Users/cshells/Desktop/git_webserv;
+		index index3.html;
 		autoindex   on;
+		return 301 https://vk.com;
 	} }
 server {
-	listen 10.21.23.103:1027 ;
+	listen 1002, 1027 ;
 	server_name et-j3:1027 ;
 
 	root            "/Users/cmarsha/Desktop/webserv/site 2" ;
@@ -40,11 +43,11 @@ server {
 		return 301 https://vk.com;
 	}
 	location / {
-
+	    index indx, deferf ;
 	}
 }
 server {
-	listen 10.21.23.103:1027 ;
+	listen 1028 ;
 	server_name et-j3.local ;
 
 
@@ -62,7 +65,7 @@ server {
 }
 
 # root only on localhost
-server { listen 127.0.0.1:1027 ;
+server { listen 1029 ;
 	server_name 127.0.0.1;
 	methods GET, POST;	client_body_size   1000000010;
 	404 404new.html;
@@ -77,7 +80,7 @@ server { listen 127.0.0.1:1027 ;
 	}
 }
 
-server { listen 127.0.0.1:1027 ; # to check redirection
+server { listen 1030 ; # to check redirection
 	methods GET, POST;
 	server_name "localhost";
 	return 307 https://google.com;

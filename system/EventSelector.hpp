@@ -20,7 +20,11 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <thread>
+#include <mutex>
+
 #include "FdHandler.hpp"
+
 
 class EventSelector {
 
@@ -32,10 +36,11 @@ public:
     EventSelector(const EventSelector &other);
     EventSelector& operator=(const EventSelector &other);
 
-    void        add(FdHandler *handler);
-    bool        remove(FdHandler *handler);
-    void        breakLoop();
-    void        run();
+    void          add(FdHandler *handler);
+    bool          remove(FdHandler *handler);
+    void          breakLoop();
+    void          run();
+    std::mutex&   getTimeoutMutex();
 
 
 
@@ -45,6 +50,7 @@ private:
     int         _fd_array_len;
     int         _max_fd;
     bool        _quit_flag;
+    std::mutex  _timeoutMutex;
 
 
 

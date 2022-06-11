@@ -19,11 +19,7 @@ FdHandler::~FdHandler() {
         close(_fd);
 }
 
-FdHandler::FdHandler(const FdHandler &other) {}
-
-FdHandler &FdHandler::operator=(const FdHandler &other) {}
-
-const int &FdHandler::getFd() const { return _fd; }
+int FdHandler::getFd() const { return _fd; }
 
 bool FdHandler::wantBeRead() const { return true; }
 

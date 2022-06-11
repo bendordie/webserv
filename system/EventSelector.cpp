@@ -8,7 +8,7 @@
 /*   Created: 2022/02/01 19:19:56 by cshells           #+#    #+#             */
 /*   Updated: 2022/02/01 19:19:57 by cshells          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/* *****************************************]********************************* */
 
 #include "EventSelector.hpp"
 
@@ -78,6 +78,7 @@ void EventSelector::run() {
     std::cout << "EventSelector: Running..." << std::endl;
     _quit_flag = false;
     for (; !_quit_flag; ) {
+
         sleep(DEBUG_DELAY_SEC);
         std::cout << "***************************************************************************" << std::endl;
         std::cout << "EventSelector: Max FD: " << _max_fd << std::endl;
@@ -86,6 +87,7 @@ void EventSelector::run() {
 
         FD_ZERO(&read_set);
         FD_ZERO(&write_set);
+        _timeoutMutex.lock();
         for (i = 0; i <= _max_fd; ++i) {
             if (_fd_array[i]) {
                 if (_fd_array[i]->wantBeRead()) {
@@ -100,7 +102,11 @@ void EventSelector::run() {
         }
         sleep(DEBUG_DELAY_SEC);
         std::cout << "EventSelector: Selecting..." << std::endl;
-        int result = select(_max_fd + 1, &read_set, &write_set, 0, 0);
+        struct timeval timeout;
+        bzero(&timeout, sizeof(timeout));
+        timeout.tv_sec = 10;
+        int result = select(_max_fd + 1, &read_set, &write_set, 0, &timeout);
+        _timeoutMutex.unlock();
         if (result < 0) {
             if (errno == EINTR)
                 continue;
@@ -111,15 +117,22 @@ void EventSelector::run() {
         if (result > 0) {
             std::cout << "EventSelector: Selecting is done" << std::endl;
             for (i = 0; i <= _max_fd; ++i) {
-                if (!_fd_array[i])
+                _timeoutMutex.lock();
+                if (!_fd_array[i]) {
+                    _timeoutMutex.unlock();
                     continue;
+                }
                 bool read = FD_ISSET(i, &read_set);
                 bool write = FD_ISSET(i, &write_set);
                 if (read || write) {
                     std::cout << "EventSelector: FD " << i << " has been selected for read: " << read << " write: " << write << std::endl;
-                    _fd_array[i]->Handle(read, write);
+                    _fd_array[i]->handle(read, write);
                 }
+                _timeoutMutex.unlock();
             }
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds (20));
     }
 }
+
+std::mutex &EventSelector::getTimeoutMutex() { return _timeoutMutex; }

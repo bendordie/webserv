@@ -3,7 +3,7 @@
 CMake Error at CMakeLists.txt:6 (add_executable):
   Cannot find source file:
 
-    Server.hpp
+    webserv.cpp
 
 
 CMake Error at CMakeLists.txt:6 (add_executable):

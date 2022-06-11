@@ -15,6 +15,7 @@
 #define __FDHANDLER_HPP__
 
 #include <unistd.h>
+#include <chrono>
 
 class FdHandler {
 
@@ -23,18 +24,18 @@ public:
 
     FdHandler(int fd = -1, bool own = true);
     virtual ~FdHandler();
-    FdHandler(const FdHandler &other);
-    FdHandler& operator=(const FdHandler &other);
+    FdHandler(const FdHandler &other) = delete;
+    FdHandler& operator=(const FdHandler &other) = delete;
 
-    virtual void    Handle(bool read, bool write) = 0;
-    const int&      getFd() const;
+    virtual void    handle(bool read, bool write) = 0;
     virtual bool    wantBeRead() const;
     virtual bool    wantBeWritten() const;
+    int             getFd() const;
 
 private:
 
-    int     _fd;
-    bool    _own_fd;
+    int               _fd;
+    bool              _own_fd;
 
 };
 

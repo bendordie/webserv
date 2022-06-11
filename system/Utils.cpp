@@ -49,7 +49,7 @@ vector<string> Utils::split(const string &str, const string &val) {
     return result;
 }
 
-string Utils::getTime() {
+string Utils::getTimeInString() {
     struct timeval  tv;
     time_t          nowtime;
     struct tm       *nowtm;
@@ -168,41 +168,51 @@ string Utils::getFileLastModTime(const string& file_path) {
         nowtm = localtime(&mod_time);
         strftime(tmbuf, sizeof tmbuf, "%a, %d %b %Y %H:%M:%S GMT", nowtm);
     } else {
-        return getTime();
+        return getTimeInString();
     }
     return tmbuf;
 }
 
 
-Utils::t_file Utils::readFile(string file_path) {
+Utils::t_file Utils::readFile(string file_path, size_t max_buf_size, size_t bytes_already_read) {
     ifstream        stream;
-    char            *buff;
-    t_file          file;
+    char            *buf;
+    t_file          file {0, 0 ,"", 0};
+    size_t          file_full_size;
+    size_t          bytes_remaining;
 
     stream.open(file_path, ifstream::binary);
-    if (stream.is_open()) {
-        try {
-            struct stat fi;
 
-            bzero(&fi, sizeof(fi));
-            stat(file_path.c_str(), &fi);
-            buff = new char[fi.st_size];
-            *buff = 0;
-            stream.read(buff, fi.st_size);
-            stream.close();
-        }
-        catch (exception &ex) {
-            cout << ex.what() << endl;
-        }
-    } else {
+    if (!stream.is_open()) {
         cout << "ReadFile: Can't open file" << endl;
-        file.data = 0;
-        file.size = 0;
         return file;
     }
-    file.data = buff;
-    file.size = stream.gcount();
+    try {
+
+        stream.seekg(0, ios_base::end);
+        file_full_size = stream.tellg();
+        bytes_remaining = static_cast<size_t>(stream.tellg()) - bytes_already_read;
+        stream.seekg(-static_cast<int>(bytes_remaining), ios_base::end);
+
+        size_t buf_size = bytes_remaining < max_buf_size ? bytes_remaining : max_buf_size;
+
+//            struct stat fi;
+
+//            bzero(&fi, sizeof(fi));
+//            stat(file_path.c_str(), &fi);
+
+        buf = new char[buf_size];
+        *buf = 0;
+        stream.read(buf, buf_size);
+        stream.close();
+    }
+    catch (exception &ex) {
+        cout << ex.what() << endl;
+    }
+    file.data = buf;
+    file.bytes_read = stream.gcount();
     file.type = getExtension(file_path);
+    file.eof = (file_full_size == file.bytes_read + bytes_already_read) ? true : false;
 
     return file;
 }
@@ -237,6 +247,35 @@ bool Utils::strToBool(const string &str) {
 
 long long Utils::strToLongLong(const string &str) {
     return stoll(str);
+}
+
+string Utils::intToHexString(int value) {
+
+    ostringstream oss;
+
+    oss << std::hex << value;
+
+    return oss.str();
+}
+
+//safsgjrekolafer
+//        gola
+
+const char *Utils::reverse_strstr(const char *source, const char *needle) {
+
+    int sourceLastElem = strlen(source) - 1;
+    int needleLastElem = strlen(needle) - 1;
+    for (size_t i = sourceLastElem, j = needleLastElem; i >= 0 && i >= needleLastElem; --i) {
+        if (source[i] == needle[needleLastElem]) {
+            for (int k = 0; source[i - k] == needle[needleLastElem - k]; ++k) {
+                if (k == needleLastElem) {
+                    return &source[i - k];
+                }
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 //template <class T1, class T2>

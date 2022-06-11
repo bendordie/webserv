@@ -48,21 +48,10 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc != 4) {
-//        sprintf(sendline, "GET /rfer HTTP/1.1\n"
-//                          "Host: 127.0.0.1\n"
-//                          "Connection: keep-alive\n"
-//                          "Cache-Control: max-age=0\n"
-//                          "sec-ch-ua: \"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"\n"
-//                          "sec-ch-ua-mobile: ?0\n"
-//                          "sec-ch-ua-platform: \"macOS\"\n"
-//                          "DNT: 1\n"
-//                          "Upgrade-Insecure-Requests: 1\n"
-//                          "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36\n"
-//                          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b\r\n\r\n");
-
-        sprintf(sendline, "GET index.nginx-debian.html HTTP/1.0\r\n"
+//        sprintf(sendline, "mysql");
+        sprintf(sendline, "GET / HTTP/1.1\r\n"
                           "Host: 127.0.0.1\r\n"
-                          "Connection: close\r\n"
+                          "Connection: keep-alive\r\n"
                           "Cache-Control: max-age=0\r\n"
                           "sec-ch-ua: \"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"\r\n"
                           "sec-ch-ua-mobile: ?0\r\n"
@@ -70,13 +59,25 @@ int main(int argc, char* argv[]) {
                           "DNT: 1\r\n"
                           "Upgrade-Insecure-Requests: 1\r\n"
                           "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36\r\n"
-                          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\n"
-                          "Sec-Fetch-Site: none\r\n"
-                          "Sec-Fetch-Mode: navigate\r\n"
-                          "Sec-Fetch-User: ?1\r\n"
-                          "Sec-Fetch-Dest: document\r\n"
-                          "Accept-Encoding: gzip, deflate, br\r\n"
-                          "Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\r\n\r\n");
+                          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b\r\n\r\n");
+
+//        sprintf(sendline, "GET index.nginx-debian.html HTTP/1.0\r\n"
+//                          "Host: 127.0.0.1\r\n"
+//                          "Connection: close\r\n"
+//                          "Cache-Control: max-age=0\r\n"
+//                          "sec-ch-ua: \"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"\r\n"
+//                          "sec-ch-ua-mobile: ?0\r\n"
+//                          "sec-ch-ua-platform: \"macOS\"\r\n"
+//                          "DNT: 1\r\n"
+//                          "Upgrade-Insecure-Requests: 1\r\n"
+//                          "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36\r\n"
+//                          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\n"
+//                          "Sec-Fetch-Site: none\r\n"
+//                          "Sec-Fetch-Mode: navigate\r\n"
+//                          "Sec-Fetch-User: ?1\r\n"
+//                          "Sec-Fetch-Dest: document\r\n"
+//                          "Accept-Encoding: gzip, deflate, br\r\n"
+//                          "Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\r\n\r\n");
 //                          "GET /favicon.ico HTTP/1.1\n"
 //                          "Host: localhost\n"
 //                          "Connection: keep-alive\n"
@@ -102,10 +103,47 @@ int main(int argc, char* argv[]) {
 //    sprintf(sendline, "GET / HTTP/1.1 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis congue purus quis ante consectetur tempor. Integer tincidunt, nulla at pulvinar blandit, quam ex maximus lectus, eu ullamcorper metus purus et lectus. Nunc vitae porttitor dolor. In euismod urna eu fermentum tempus. Suspendisse nec augue.\r\n\r\n");
     bytes_sent = strlen(sendline);
 
+//    int len = 8;
+//    char payload[12];
+//    payload[0] = len >> 16;
+//    payload[1] = len >> 8;
+//    payload[2] = len;
+//    payload[3] = 0;
+//    payload[4] = 'C';
+//    payload[5] = 'O';
+//    payload[6] = 'M';
+//    payload[7] = '_';
+//    payload[8] = 'P';
+//    payload[9] = 'I';
+//    payload[10] = 'N';
+//    payload[11] = 'G';
+//
+//    if (send(socketfd, payload, 12, 0) < 0)
+//    {
+//        std::cout << "Sending error" << std::endl;
+//        return 1;
+//    }
+
+//    memset(recvline, 0, MAXLINE);
+//    sprintf(recvline, "%d", payload);
+//    sprintf(recvline, "%d", payload);
+//    bytes_sent = strlen(sendline);
+//    write(socketfd, recvline, sizeof(int));
+
     if (write(socketfd, sendline, bytes_sent) != bytes_sent) {
         perror("Write error");
         return 1;
     }
+
+//    sleep(2);
+//    memset(recvline, 0, MAXLINE);
+//    sprintf(sendline, "3498549645964543694");
+//    bytes_sent = strlen(sendline);
+//    if (write(socketfd, sendline, bytes_sent) != bytes_sent) {
+//        perror("Write error");
+//        return 1;
+//    }
+
     memset(recvline, 0, MAXLINE);
 
 //    FILE *file = fopen("filerecv.png", "w");
@@ -115,14 +153,15 @@ int main(int argc, char* argv[]) {
 //    }
 //    fclose(file);
 
-    std::ofstream ofs;
+//    std::ofstream ofs;
 
-    ofs.open("filerecv.png", std::ofstream::binary);
+//    ofs.open("filerecv.png", std::ofstream::binary);
 
     while ((n = read(socketfd, recvline, MAXLINE-1)) > 0) {
-        ofs.write(recvline, n);
+        std::cout << recvline << "$" << std::endl;
+//        ofs.write(recvline, n);
     }
-    ofs.close();
+//    ofs.close();
 
 //    while ((n = read(socketfd, recvline, MAXLINE-1)) > 0) {
 //        printf("%s", recvline);

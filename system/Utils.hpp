@@ -23,31 +23,45 @@
 #include <sys/time.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
-using namespace std;
+using std::cout;
+using std::endl;
+using std::exception;
+using std::ios_base;
+using std::ifstream;
+using std::string;
+using std::vector;
+using std::list;
+using std::map;
+using std::ostringstream;
 
 namespace Utils {
 
     typedef struct  s_file {
         char    *data;
-        size_t  size;
+        size_t  bytes_read;
         string  type;
+        bool    eof;
     }               t_file;
 
 //    typedef map<string, string>::const_iterator t_map_const_iter;
 
     vector<string>                         split(const string &str, char ch);
     vector<string>                         split(const string &str, const string &val);
-    string                                 getTime();
+    string                                 getTimeInString();
     string                                 getExtension(const string& file_name);
     bool                                   searchFileInDir(const char* dir_path, const char* file_name);
     bool                                   isPathAccessed(const string &path);
     bool                                   getDirContent(const char* dir_path, list<struct dirent> &content);
     string                                 getFileLastModTime(const string &file_path);
     bool                                   isPathExist(const string &path);
-    t_file                                 readFile(string file_path);
+    t_file                                 readFile(string file_path, size_t max_buf_size, size_t bytes_already_read = 0);
     bool                                   strToBool(const string &str);
     long long                              strToLongLong(const string &str);
+    string                                 intToHexString(int value);
+    const char                             *reverse_strstr(const char *source, const char *needle);
+
 
 //    template <class T1, class T2>
 //    const typename map<T1, T2>::const_iterator

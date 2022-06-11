@@ -19,36 +19,45 @@
 #include <vector>
 #include <map>
 
-using namespace std;
+#include "Utils.hpp"
+
+using std::string;
+using std::pair;
 
 class HttpMessage {
 
 
 public:
 
-    HttpMessage();
+    HttpMessage(const string &protocol);
     virtual ~HttpMessage();
     HttpMessage(const HttpMessage &other);
     HttpMessage& operator=(const HttpMessage &other);
 
-    const vector<char>&         getData() const;
+    const string&               getProtocol() const;
     string                      getHeaderEntryValue(const string &key) const;
+    const char*                 getData() const;
+    size_t                      getDataSize() const;
     string                      operator[](const string &key) const;
 
     void                        setData(const char *begin, const char *end);
+    void                        setChunkedData(const char *begin, const char *end, bool last_chunk = false);
     void                        appendData(const char *begin, const char *end);
+    void                        appendChunkedData(const char *begin, const char *end, bool last_chunk = false);
     bool                        addHeaderEntry(const string &key, const string &value);
     bool                        addHeaderEntry(const pair<string, string> &entry);
     bool                        removeHeaderEntry(const string &key);
     void                        setHeaderEntries(const map<string, string> &header_entries);
 
+    static const char*          findMessageEnd(const char *msg_begin);
+
 
 protected:
 
-    map<string, string> _header_entries;
-    vector<char>        _data;
-
-
+    string               _protocol;
+    map<string, string>  _header_entries;
+    char*                _data;
+    size_t               _data_size;
 
 };
 

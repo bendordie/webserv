@@ -101,6 +101,7 @@ public:
 		}
 	};
 
+    /* Returns set of each location URL like '/' or '/example/directory' */
     set<string> getServerLocations(int idx) const {
         set<string> tmp;
 
@@ -118,6 +119,7 @@ public:
     bool isTraitDefined(int idx, const string& trait_name) const {
 
         for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
+//            std::cout << "first: " << it->first << ", second: " << it->second << std::endl;
             int find_idx = it->first.find(trait_name);
             if (find_idx == strlen("server.")) {
                 return true;
@@ -141,14 +143,19 @@ public:
 //
 //    }
 
-	size_t size() {
+	size_t size() const {
 		return servers.size();
 	}
 
 	string operator [](string const& name) {
 
 		int idx = atoi(name.c_str());
-		return servers[idx].find(name.substr(name.find('.') + 1))->second;
+
+        auto result = servers[idx].find(name.substr(name.find('.') + 1));
+        if (result == servers[idx].end())
+            return "";
+
+		return result->second;
 	}
 
 	string const operator [](string const& name) const {
