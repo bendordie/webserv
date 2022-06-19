@@ -1,4 +1,4 @@
-# webserv (work in progress...)
+# webserv
 
 Simple Web-Server based on HTTP/1.1.
 
