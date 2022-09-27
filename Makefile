@@ -12,19 +12,21 @@
 
 NAME = server
 
-SRC =	main_new.cpp \
-		EventSelector.cpp \
-		FdHandler.cpp \
-		WebServer.cpp \
-		WebSession.cpp \
-		HttpMessage.cpp \
-		HttpRequest.cpp \
-		HttpResponse.cpp \
-		Utils.cpp
+SRC =	src/webserv.cpp \
+		src/EventSelector.cpp \
+		src/FdHandler.cpp \
+		src/WebServer.cpp \
+		src/VirtualServer.cpp \
+		src/Location.cpp \
+		src/WebSession.cpp \
+		src/HttpMessage.cpp \
+		src/Request.cpp \
+		src/Response.cpp \
+		src/Utils.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
-CXX = clang++
+CXX = clang++ -std=c++11
 
 #CXXFLAGS = -Wall -Wextra -Werror
 
@@ -32,7 +34,7 @@ RM = rm -rf
 
 all: $(NAME)
 
-$(NAME): $(SRC) *.hpp $(OBJ)
+$(NAME): $(SRC) src $(OBJ)
 	$(CXX) $(OBJ) -o $(NAME)
 
 clean:
