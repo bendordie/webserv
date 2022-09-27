@@ -72,65 +72,59 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 
 build cmake_object_order_depends_target_webserv: phony || CMakeFiles/webserv.dir
 
-build CMakeFiles/webserv.dir/main_new.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/main_new.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/main_new.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/webserv.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/webserv.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/webserv.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/EventSelector.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/EventSelector.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/EventSelector.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/EventSelector.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/EventSelector.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/EventSelector.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/WebServer.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/WebServer.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/WebServer.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/WebServer.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/WebServer.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/WebServer.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/WebSession.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/WebSession.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/WebSession.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/WebSession.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/WebSession.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/WebSession.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/HttpMessage.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/HttpMessage.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/HttpMessage.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/HttpMessage.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/HttpMessage.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/HttpMessage.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/HttpRequest.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/HttpRequest.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/HttpRequest.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/Request.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/Request.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/Request.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/HttpResponse.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/HttpResponse.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/HttpResponse.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/Response.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/Response.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/Response.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/Utils.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/Utils.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/Utils.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/Utils.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/Utils.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/Utils.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
-build CMakeFiles/webserv.dir/ServerTraits.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/ServerTraits.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/ServerTraits.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
+build CMakeFiles/webserv.dir/src/FdHandler.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/src/FdHandler.cpp || cmake_object_order_depends_target_webserv
+  DEP_FILE = CMakeFiles/webserv.dir/src/FdHandler.cpp.o.d
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu++11
   OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
-
-build CMakeFiles/webserv.dir/FdHandler.cpp.o: CXX_COMPILER__webserv_Debug /Users/cshells/Desktop/git_webserv/FdHandler.cpp || cmake_object_order_depends_target_webserv
-  DEP_FILE = CMakeFiles/webserv.dir/FdHandler.cpp.o.d
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14 -std=gnu++11
-  OBJECT_DIR = CMakeFiles/webserv.dir
-  OBJECT_FILE_DIR = CMakeFiles/webserv.dir
+  OBJECT_FILE_DIR = CMakeFiles/webserv.dir/src
 
 
 # =============================================================================
@@ -140,8 +134,8 @@ build CMakeFiles/webserv.dir/FdHandler.cpp.o: CXX_COMPILER__webserv_Debug /Users
 #############################################
 # Link the executable webserv
 
-build webserv: CXX_EXECUTABLE_LINKER__webserv_Debug CMakeFiles/webserv.dir/main_new.cpp.o CMakeFiles/webserv.dir/EventSelector.cpp.o CMakeFiles/webserv.dir/WebServer.cpp.o CMakeFiles/webserv.dir/WebSession.cpp.o CMakeFiles/webserv.dir/HttpMessage.cpp.o CMakeFiles/webserv.dir/HttpRequest.cpp.o CMakeFiles/webserv.dir/HttpResponse.cpp.o CMakeFiles/webserv.dir/Utils.cpp.o CMakeFiles/webserv.dir/ServerTraits.cpp.o CMakeFiles/webserv.dir/FdHandler.cpp.o
-  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.14
+build webserv: CXX_EXECUTABLE_LINKER__webserv_Debug CMakeFiles/webserv.dir/src/webserv.cpp.o CMakeFiles/webserv.dir/src/EventSelector.cpp.o CMakeFiles/webserv.dir/src/WebServer.cpp.o CMakeFiles/webserv.dir/src/WebSession.cpp.o CMakeFiles/webserv.dir/src/HttpMessage.cpp.o CMakeFiles/webserv.dir/src/Request.cpp.o CMakeFiles/webserv.dir/src/Response.cpp.o CMakeFiles/webserv.dir/src/Utils.cpp.o CMakeFiles/webserv.dir/src/FdHandler.cpp.o
+  FLAGS = -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6
   OBJECT_DIR = CMakeFiles/webserv.dir
   POST_BUILD = :
   PRE_LINK = :

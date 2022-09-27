@@ -1,0 +1,11 @@
+server:
+	host: 0.0.0.0
+	port: 8321
+	server_name: ikael
+	error_page: 404=/html/404.html 405=/html/405.html
+
+	location: /
+		limits_client_body_size: 2000
+		index: index.html
+		allow_methods: GET
+		root: /home/ikael/Desktop/webserv

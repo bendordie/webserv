@@ -1,0 +1,492 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cshells <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/01/31 19:40:20 by cshells           #+#    #+#             */
+/*   Updated: 2022/01/31 19:40:21 by cshells          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "Response.hpp"
+
+// SIMPLE (DEFAULT)
+Response::Response(const string &protocol, int statusCode, bool keepAliveFlag,
+                   bool acceptEncodingFlag, const PairList& cookies, const string &redirectUrl)
+        : HttpMessage(protocol), _statusCode(statusCode), _contentType("text/html"), _keepAliveFlag(keepAliveFlag) {
+
+    showDebugMessage("Response: SIMPLE constructor");
+
+    auto   result = global::responseStatuses.find(statusCode);
+    if (result != global::responseStatuses.end()) {
+        _statusMsg = result->second;
+    } else {
+        _statusCode = 500;
+        _statusMsg = "INTERNAL SERVER ERROR";
+    }
+
+    showDebugMessage("Response: Code: " + to_string(_statusCode) + " Message: " + _statusMsg);
+
+    const string   &currentTime = Utils::getTimeInString();
+    const string   &page = makeStatusPage();
+    bool           chunked = (_protocol == "HTTP/1.1") && acceptEncodingFlag;
+
+    _contentLength = page.size();
+    makeResponseHeader(chunked, currentTime, cookies, redirectUrl);
+    setData(_header.begin().base(), _header.end().base());
+    if (chunked)
+        appendChunkedData(page.begin().base(), page.end().base(), true);
+    else
+        appendData(page.begin().base(), page.end().base());
+
+    showDebugMessage("Response: Page size: " + to_string(page.size()));
+    showDebugMessage("Response: Data size: " + to_string(_dataSize));
+
+    _fullProcessed = true;
+}
+
+// CHUNKED
+Response::Response(const string &protocol, const string &dataPath, size_t dataBytesProcessed)
+    : HttpMessage(protocol), _dataBytesHandled(dataBytesProcessed), _contentType("text/html") {
+
+    showDebugMessage("Response: CHUNKED constructor");
+
+    if (dataPath.empty()) {
+        // ???
+    }
+    // 65535
+    Utils::t_file   file = Utils::readFile(dataPath, global::FILE_READING_BUFFER_SIZE,dataBytesProcessed); // TODO: func for calculating suitable chunk size
+    if (!file.data) {
+        std::cerr << "Response: Reading file error" << std::endl;
+        // ??? throw exception
+    }
+
+    setChunkedData(file.data, file.data + file.bytes_read, file.eof);
+    _dataBytesHandled = file.bytes_read;
+    _fullProcessed = file.eof;
+    delete file.data;
+}
+
+// FILE
+Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
+                   const string &dataPath, const map<string, string> &contentTypes, const PairList& cookies)
+    : HttpMessage(protocol), _statusCode(statusCode), _keepAliveFlag(keepAliveFlag),
+    _dataBytesHandled(0), _fullProcessed(false) {
+
+    showDebugMessage("Response: FILE constructor: code = " + to_string(statusCode));
+
+    auto   result = global::responseStatuses.find(statusCode);
+    if (result != global::responseStatuses.end()) {
+        _statusMsg = result->second;
+    } else {
+        _statusCode = 500;
+        _statusMsg = "INTERNAL SERVER ERROR";
+    }
+
+    string          fileTime;
+    long            serverMaxBodySize = global::MAX_SERVER_BODY_SIZE; // TODO: hardcode
+    bool            chunked = (_protocol == "HTTP/1.1") && acceptEncodingFlag;
+    Utils::t_file   file;
+
+    if (!dataPath.empty()) {
+        size_t        maxBufSize = (chunked) ? 8192 : serverMaxBodySize;
+        file = Utils::readFile(dataPath, maxBufSize, 0);
+        fileTime = Utils::getFileLastModTime(dataPath);
+        if (!file.data) {
+            std::cerr << "Response: Reading file error" << std::endl;
+            // ??? throw exception
+        }
+        _dataBytesHandled = file.bytes_read;
+
+        map<string, string>::const_iterator it = contentTypes.find("html");
+        _contentType = (it != contentTypes.end()) ? it->second : "text/html";
+    }
+
+    makeResponseHeader(chunked, fileTime, cookies);
+    setData(_header.begin().base(), _header.end().base());
+    if (file.data && file.bytes_read > 0) {
+        if (chunked) {
+            showDebugMessage("Response: Appending chunked data");
+            showDebugMessage("Response: Is EOF reached: " + to_string(file.eof));
+
+            appendChunkedData(file.data, file.data + file.bytes_read, file.eof);
+        }
+        else
+            appendData(file.data, file.data + file.bytes_read);
+    }
+    _fullProcessed = file.eof;
+
+    {
+        showDebugMessage("Response: Response header: ");
+        showDebugMessage("--------------------------------------------------");
+        showDebugMessage(_header);
+        showDebugMessage("--------------------------------------------------");
+    }
+    delete file.data;
+}
+
+
+// RAW DATA (FOR AUTOINDEX)
+Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
+                   const char *data, size_t dataSize, string contentType, const PairList& cookies)
+    : HttpMessage(protocol), _statusCode(statusCode), _keepAliveFlag(keepAliveFlag), _contentType(contentType) {
+
+    showDebugMessage("Response: RAW DATA constructor: code = " + to_string(statusCode));
+
+    auto   result = global::responseStatuses.find(statusCode);
+    if (result != global::responseStatuses.end()) {
+        _statusMsg = result->second;
+    } else {
+        _statusCode = 500;
+        _statusMsg = "INTERNAL SERVER ERROR";
+    }
+
+    bool     chunked = (_protocol == "HTTP/1.1") && acceptEncodingFlag;
+    string   fileTime = Utils::getTimeInString();
+
+    makeResponseHeader(chunked, fileTime, cookies);
+    setData(_header.begin().base(), _header.end().base());
+    if (chunked)
+        appendChunkedData(data, data + dataSize, true); // TODO: Warning! Hard code 'true'
+    else
+        appendData(data, data + dataSize);
+
+    {
+        showDebugMessage("Response: Response header: ");
+        showDebugMessage("--------------------------------------------------");
+        showDebugMessage(_header);
+        showDebugMessage("--------------------------------------------------");
+    }
+    _fullProcessed = true;
+}
+
+Response::~Response() {}
+
+void Response::makeResponseHeader(bool HTTPv1_1, const string &fileTime,
+                                  const PairList& cookies, const string &redirectUrl) {
+
+    _header.clear();
+    _header.append(_protocol + " " + to_string(_statusCode) + " " + _statusMsg + "\r\n");
+    _header.append("Server: " + global::APP_NAME + "\r\n");
+    _header.append("Date: " + Utils::getTimeInString() + "\r\n");
+    _header.append((_keepAliveFlag ? "Connection: keep-alive\r\n" : "Connection: close\r\n"));
+
+    _header.append("Content-Type: " + _contentType + "\r\n");
+
+    if (_statusCode == 200 || _statusCode == 201)
+        _header.append("Last-Modified: " + fileTime + "\r\n");
+
+    if (!cookies.empty()) {
+        _header.append("Set-Cookie: ");
+        for (auto cookie : cookies) {
+            _header.append(cookie.first);
+            _header.append("=");
+            _header.append(cookie.second);
+            _header.append("\r\n");
+        }
+    }
+
+    if (HTTPv1_1) {
+        _header.append("Transfer-Encoding: chunked\r\n");
+        _header.append("Accept-Ranges: bytes\r\n"); // ???
+    }
+    else
+        _header.append("Content-Length: " + to_string(_contentLength) + "\r\n");
+
+    if (_statusCode / 100 == 3)
+        _header.append("Location: " + redirectUrl + "\r\n");
+
+    _header.append("\r\n");
+}
+
+Response *Response::createResponse(const WebSession *session, const Request *request, const WebServer *server,
+                                   const char *data) {
+
+    showDebugMessage("Response: Creating response...");
+
+    const PairList&   cookies = session->getCookiesList();
+
+    if (!request)
+        return new Response("HTTP/1.0", global::response_status::INTERNAL_ERROR,
+                            false, false, cookies);
+
+    const string&   protocol = request->getProtocol();
+    bool            keepAliveFlag  = request->isKeepAlive();
+    bool            acceptEncodingFlag = request->isAcceptEncoding();
+
+    int   responseCode = request->getResponseCode();
+    if (responseCode > 0)
+        return new Response(protocol, responseCode, keepAliveFlag, false, cookies);
+
+    if (!request->isFullReceived())
+        return new Response(protocol, global::response_status::CONTINUE,
+                            keepAliveFlag, acceptEncodingFlag, cookies);
+
+    if (request->isHandledByCgi()) {
+        if (!data)
+            return new Response(protocol, global::response_status::INTERNAL_ERROR,
+                                false, acceptEncodingFlag, cookies);
+
+        const string&   status = getOptionValueFromBuffer(data, "Status");
+        const string&   contentType = getOptionValueFromBuffer(data, "Content-Type");
+        int             statusCode = atoi(status.c_str());
+
+        if (statusCode == 0)
+            statusCode = global::response_status::OK;
+
+        const char*     cgiPayloadBegin = HttpMessage::findMessageEnd(data);
+        const char*     cgiPayloadEnd;
+        size_t          cgiPayloadSize = 0;
+
+        if (!cgiPayloadBegin)
+            return new Response(protocol, global::response_status::CONTINUE,
+                                keepAliveFlag, acceptEncodingFlag, cookies);
+
+        showDebugMessage("Response: CGI has payload");
+        cgiPayloadEnd = HttpMessage::findMessageEnd(cgiPayloadBegin);
+        if (cgiPayloadEnd)
+            cgiPayloadSize = cgiPayloadEnd - cgiPayloadBegin;
+
+        return new Response(protocol, statusCode, keepAliveFlag,
+                            acceptEncodingFlag, cgiPayloadBegin, cgiPayloadSize, contentType, cookies);
+    }
+
+    if (request->isRedirect()) {
+        showDebugMessage("Response: Creating redirect response");
+
+        int             redirectCode = request->getRedirectCode();
+        const string&   redirectUrl = request->getRedirectUrl();
+
+        if (global::responseStatuses.find(redirectCode) == global::responseStatuses.end()) {
+            std::cerr << "Response: No such code response" << std::endl;
+            return nullptr;
+        }
+
+        return new Response(protocol, redirectCode, keepAliveFlag, acceptEncodingFlag, cookies, redirectUrl);
+    }
+
+    const string&   requestMethod = request->getMethod();
+
+    if (requestMethod == "GET")
+        return createGetResponse(session, request, server);
+    if (requestMethod == "POST")
+        return createPostResponse(session, request, server);
+    if (requestMethod == "DELETE")
+        return createDeleteResponse(session, request, server);
+
+   return new Response(protocol, global::response_status::NOT_ALLOWED,
+                       keepAliveFlag, acceptEncodingFlag, cookies);
+}
+
+Response *Response::createGetResponse(const WebSession* session, const Request *request, const WebServer *server) {
+
+    showDebugMessage("Response: Creating GET response...");
+
+    const string&     protocol = request->getProtocol();
+    const string&     requestedPath = request->getUrl();
+    const Location*   location = request->getLocation();
+    string            absoluteDataPath =  location->getRoot() + requestedPath;
+    list<string>      indexes = location->getIndexNames();
+    bool              autoindex = location->isAutoindex();
+    const PairList&   cookies = session->getCookiesList();
+
+    showDebugMessage("Response: Requested path: ");
+    showDebugMessage("Response: Defining location...");
+    showDebugMessage("Response: Autoindex: " + to_string(autoindex));
+
+    bool   pathExistence, pathAccess;
+
+    if (requestedPath == "/") {
+        showDebugMessage("Response: Index is required");
+
+        for (auto indexFileName = indexes.begin(); indexFileName != indexes.end(); ++indexFileName) {
+            showDebugMessage("Response: Searching " + *indexFileName + " in " + absoluteDataPath);
+            pathExistence = Utils::isPathExist(absoluteDataPath + *indexFileName);
+            showDebugMessage("Response: Index existing: " + to_string(pathExistence));
+            if (pathExistence) {
+                absoluteDataPath += *indexFileName;
+                break;
+            }
+        }
+    }
+
+    const map<string, string>&   contentTypes = server->getContentTypes();
+    bool                         keepAliveFlag  = request->isKeepAlive();
+    bool                         acceptEncodingFlag = request->isAcceptEncoding();
+
+    showDebugMessage("Response: Path required: " + absoluteDataPath);
+    pathExistence = Utils::isPathExist(absoluteDataPath);
+    showDebugMessage("Response: Path existing: " + to_string(pathExistence));
+    if (!pathExistence) {
+        return new Response(protocol, global::response_status::NOT_FOUND,
+                            keepAliveFlag, acceptEncodingFlag, cookies);
+    }
+
+    pathAccess = (access(absoluteDataPath.c_str(), R_OK) == 0);
+    showDebugMessage("Response: Path access: " + to_string(pathAccess));
+    if (!pathAccess) {
+        return new Response(protocol, global::response_status::FORBIDDEN,
+                            keepAliveFlag, acceptEncodingFlag, cookies);
+    }
+
+    if (absoluteDataPath[absoluteDataPath.length() - 1] == '/') {
+        showDebugMessage("Response: Handling as directory...");
+
+        if (!autoindex) {
+            return new Response(protocol, global::response_status::FORBIDDEN,
+                                keepAliveFlag, acceptEncodingFlag, cookies);
+        }
+        string   autoindexPage = makeAutoindexPage(requestedPath, absoluteDataPath);
+        size_t   autoindexSize = autoindexPage.length();
+
+        return new Response(protocol, global::response_status::OK,
+                            keepAliveFlag, acceptEncodingFlag, autoindexPage.c_str(),
+                            autoindexSize, "text/html", cookies);
+    }
+
+    size_t   bytesAlreadySent = request->getHandledDataSize();
+    if (bytesAlreadySent > 0)
+        return new Response(protocol, absoluteDataPath, bytesAlreadySent); // TODO: ??? what's logic, need to check this out
+
+    return new Response(protocol, global::response_status::OK,
+                        keepAliveFlag, acceptEncodingFlag, absoluteDataPath, contentTypes, cookies);
+}
+
+Response *Response::createPostResponse(const WebSession* session, const Request* request, const WebServer* server) {
+
+    showDebugMessage("Response: Creating POST response...");
+
+    struct stat       fi;
+    const string&     dataPath = request->getDataPath();
+    const string&     protocol = request->getProtocol();
+    bool              keepAliveFlag  = request->isKeepAlive();
+    bool              acceptEncodingFlag = request->isAcceptEncoding();
+    const PairList&   cookies = session->getCookiesList();
+
+    bzero(&fi, sizeof(fi));
+    stat(dataPath.c_str(), &fi);
+
+    showDebugMessage("Response: Saved file size: " + to_string(fi.st_size));
+    showDebugMessage("Response: Content-Length: " + to_string(request->getContentLength()));
+
+    if (fi.st_size != request->getContentLength()) {
+        return new Response(protocol, global::response_status::BAD_REQUEST,
+                            keepAliveFlag, acceptEncodingFlag, cookies);
+    }
+
+    return new Response(protocol, global::response_status::CREATED,
+                        keepAliveFlag, acceptEncodingFlag, cookies);
+}
+
+Response *Response::createDeleteResponse(const WebSession* session, const Request* request, const WebServer* server) {
+
+    showDebugMessage("Response: Creating DELETE response...");
+
+    const string&                protocol = request->getProtocol();
+    bool                         keepAliveFlag  = request->isKeepAlive();
+    bool                         acceptEncodingFlag = request->isAcceptEncoding();
+    const map<string, string>&   contentTypes = server->getContentTypes();
+    const string&                url = request->getUrl();
+    const Location*              location = request->getLocation();
+    const PairList&              cookies = session->getCookiesList();
+
+    size_t   lastSlashPosition = url.rfind('/');
+    if (lastSlashPosition == string::npos)
+        return new Response(protocol, global::response_status::INTERNAL_ERROR,
+                            keepAliveFlag, acceptEncodingFlag, cookies);
+
+    string   absoluteDataPath =  location->getRoot() + url.substr(lastSlashPosition);
+    showDebugMessage("Response: Absolute path to file: " + absoluteDataPath);
+
+    bool   pathExist = !access(absoluteDataPath.c_str(), F_OK);
+    if (!pathExist)
+        return new Response(protocol, global::response_status::NOT_FOUND,
+                            keepAliveFlag, acceptEncodingFlag,  cookies);
+
+    bool   accessRights = !access(absoluteDataPath.c_str(), W_OK);
+    if (!accessRights)
+        return new Response(protocol, global::response_status::FORBIDDEN,
+                            keepAliveFlag, acceptEncodingFlag, cookies);
+
+    bool   removeOk = !remove(absoluteDataPath.c_str());
+    if (!removeOk)
+        return new Response(protocol, global::response_status::INTERNAL_ERROR,
+                            keepAliveFlag, acceptEncodingFlag, cookies);
+
+    return new Response(protocol, global::response_status::OK,
+                        keepAliveFlag, acceptEncodingFlag, cookies);
+}
+
+string Response::makeStatusPage() {
+    showDebugMessage("Response: Preparing status page...");
+
+    return "<!DOCTYPE html>\n"
+           "<html>\n"
+           "<head>\n"
+           "    <title>" + to_string(_statusCode) + " " + " " + _statusMsg + "</title>\n"
+           "</head>\n"
+           "<body>\n"
+           "<p style=\"text-align:center\"><span style=\"font-size:72px\"><strong>" + to_string(_statusCode) + " " + _statusMsg + "</strong></span></p>\n"
+           "\n"
+           "<p style=\"text-align:center\">" + global::APP_NAME + "</p>\n"
+           "</body>\n"
+           "</html>";
+}
+
+string Response::makeAutoindexPage(const string &uri, const string &abs_path) {
+
+    showDebugMessage("Response: Preparing autoindex page...");
+
+    string   res = "<html>\n"
+                   "<head><title>Index of ";
+
+
+    res += uri;
+    res += "</title></head>\n"
+            "<body bgcolor=\"white\">\n"
+            "<h1>Index of ";
+    res += uri;
+    res += "</h1><hr><pre><a href=\"../\">../</a>\n";
+    list<struct dirent>  content;
+    Utils::getDirContent(abs_path.c_str(), content);
+    for (auto it = content.begin(); it != content.end(); ++it) {
+        if (!strcmp(it->d_name, ".") || !strcmp(it->d_name, ".."))
+            continue;
+        res += makeAutoindexLine(it, abs_path);
+    }
+    res += "</pre><hr></body>\n"
+            "</html>";
+
+    return res;
+}
+
+string Response::makeAutoindexLine(list<struct dirent>::iterator file, const string &path) {
+    struct stat   fi;
+    string        res = "<a href=\"";
+    string        size;
+    const char*   tabs = "\t\t\t\t\t\t\t\t\t";
+    string        name = file->d_name;
+    string        currentPath = path + file->d_name;
+    int           tabOffset = strlen(file->d_name) / 8;
+
+    stat(currentPath.c_str(), &fi);
+    if (file->d_type == DT_DIR) {
+        name += "/";
+        size = "-";
+    } else {
+        size = to_string(fi.st_size);
+    }
+    if (tabOffset >= strlen(tabs))
+        tabOffset = strlen(tabs) - 1;
+    res += name + "\">" + name + "</a>" + &tabs[tabOffset] + Utils::getFileLastModTime(name) + "\t\t\t" + size + "\n";
+
+    return res;
+}
+
+const string &Response::getHeader() const { return _header; }
+
+size_t Response::getHandledDataSize() const { return _dataBytesHandled; }
+
+bool Response::isFullProcessed() const { return _fullProcessed; }

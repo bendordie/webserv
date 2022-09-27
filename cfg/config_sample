@@ -1,0 +1,120 @@
+server {		# just for testing. there is nothing interesting
+   listen             80;
+   server_name        10.21.23.103;
+   root               /Users/cshells/Desktop/git_webserv;
+   client_body_size   100;
+   index              index4.html, index.htm, index.php;
+   methods            GET, POST, DELETE;
+
+   location / {
+	    methods     GET, POST, DELETE;
+		root        /Users/cshells/Desktop/git_webserv/www/default_site;
+		index       index.html;
+		autoindex   on;
+		#return     301 https://vk.com;
+
+   }
+   location /post_body {
+        methods            GET, POST;
+        client_body_size   100;
+        upload	           /Upload ;
+        index              index2.html;
+        root               /Users/cshells/Desktop/git_webserv;
+
+        cgi_path           /Users/cshells/Desktop/git_webserv/default_form_cgi.py;
+        cgi                default_form_cgi.py;
+   }
+   location /directory {
+        methods    GET POST;
+        root       789/Users/cmarsha/Desktop/webserv/YoupiBanane;
+        index      youpi.bad_extension;
+        cgi_path   /Users/cshells/Desktop/git_webserv/mycgi;
+        cgi        mycgi;
+   }
+}
+
+server {
+	listen             1002, 1027;
+	server_name        et-j3:1027;
+	root               /Users/cshells/Desktop/git_webserv;
+	index              index.html;
+	client_body_size   1000000010;
+
+	location /do_return {
+		#methods   POST, PUT, DELETE ;
+		return     301 https://vk.com;
+	}
+	location / {
+	    root      /Users/cshells/Desktop/git_webserv/www/personal_site;
+	    index     index.html;
+	    methods   GET;
+	}
+}
+
+server {
+	listen             1028;
+	server_name        et-j3.local;
+	root               /Users/cshells/Desktop/git_webserv;
+	index              index.html;
+	client_body_size   1000000010;
+
+	location /return_404 {
+		methods   GET, DELETE ;
+		return     404 https://does_not_matter
+	}
+	location / {
+		methods     POST,PUT,DELETE;
+		autoindex   True;
+	}
+}
+
+# root only on localhost
+server {
+    listen             1029 ;
+	server_name        127.0.0.1;
+	methods            GET, POST;
+	client_body_size   1000000010;
+	404 404new.html;
+
+	location /ttt {
+		root            /Users/cmarsha;
+		autoindex 1;
+	}
+	location /nnn {
+		root        /Users/cshells/Desktop/git_webserv;
+		autoindex   false;
+		index       .shelkers;
+	}
+}
+
+server {
+    listen             1030;
+	methods            GET, POST;
+	server_name        "localhost";
+	return             307 https://google.com;
+	client_body_size   1000000010;
+
+	location /ttt {
+		root        /Users/cshells/Desktop/git_webserv;
+		autoindex   0;
+	}
+	location /post_body {
+		methods            POST;
+		client_body_size   100;
+		cgi_path    	   /Users/cmarsha/Desktop/webserv/cgi_tester;
+		cgi         	   bla;
+	}
+	location /directory {
+		autoindex   1;
+		methods		POST;
+		return      00000 ;
+		root        /Users/cmarsha/Desktop/webserv/YoupiBanane;
+		#index      youpi.bad_extension;
+		cgi_path    /Users/cmarsha/Desktop/webserv/cgi_tester;
+		cgi         bla;
+	}
+	location / {
+		root        /Users/cmarsha;
+		autoindex   On;
+	}
+}
