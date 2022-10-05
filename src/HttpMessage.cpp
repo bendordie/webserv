@@ -27,10 +27,6 @@ HttpMessage::~HttpMessage() {
     delete [] _data;
 }
 
-HttpMessage::HttpMessage(const HttpMessage &other) {}
-
-HttpMessage &HttpMessage::operator=(const HttpMessage &other) {}
-
 void HttpMessage::setData(const char *begin, const char *end) {
     showDebugMessage("HttpMessage: Setting data...");
 

@@ -27,7 +27,7 @@ public:
     long long            getClientBodySize() const;
     const list<string>   getIndexNames() const;
     const list<string>   getMethodsAllowed() const;
-    const string&        getUrl() const;
+    const string&        getURL() const;
     const string&        getReturnValue() const;
     string               getAbsolutePath() const;
     const string&        getCgiPath() const;
@@ -38,7 +38,7 @@ public:
 
     void                 setServerName(const string& name);
     void                 setRoot(const string& root);
-    void                 setUrl(const string& url);
+    void                 setURL(const string& url);
     void                 setClientBodySize(long long clientBodySize);
     void                 setIndexNames(const list<string>& indexNames);
     void                 setMethodsAllowed(const list<string>& methodsAllowed);

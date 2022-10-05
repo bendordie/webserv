@@ -32,8 +32,6 @@ public:
 
     EventSelector();
     ~EventSelector();
-    EventSelector(const EventSelector &other);
-    EventSelector& operator=(const EventSelector &other);
 
     void          add(FdHandler *handler);
     bool          remove(FdHandler *handler);

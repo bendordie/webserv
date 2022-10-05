@@ -67,12 +67,14 @@ Request::Request(const string& method, const string& url, const string& protocol
         _fullReceived = true;
 
     addHeaderEntry("Request-Method", method);
-    addHeaderEntry("Request-Url", url);
+    addHeaderEntry("Request-URL", url);
 }
 
 Request::~Request() {}
 
 Request *Request::createRequest(const char* & bufferBegin, const char* & bufferEnd, int responseCode) {
+
+    (void)bufferEnd;
 
     string protocol = findHttpProtocolFromBuffer(bufferBegin);
 
@@ -81,6 +83,22 @@ Request *Request::createRequest(const char* & bufferBegin, const char* & bufferE
 
     return new Request(responseCode, protocol);
 }
+
+// Request URL:    /directory/resources
+// Root:           /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources
+
+// Request URL:    /directory/resources/img/image.png
+// Root:           /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources/img/image.png
+
+// Request URL:    /
+// Root:           /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/
+
+// Request URL:    /directory
+// Root:           /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/
 
 Request *Request::createRequest(const char* &bufferBegin, const char* &bufferEnd, const WebServer* server) {
 
@@ -107,7 +125,7 @@ Request *Request::createRequest(const char* &bufferBegin, const char* &bufferEnd
     showDebugMessage("Request: Method: " + method);
 
     string         protocol = findHttpProtocolFromBuffer(requestBegin);
-    const string   url = defineRequestUrl(requestBegin);
+    const string   url = defineRequestURL(requestBegin);
     const char*    headerBegin = strchr(requestBegin, '\n') + 1;
     const string   hostname = getOptionValueFromBuffer(headerBegin, "Host");
 
@@ -146,20 +164,20 @@ Request *Request::createRequest(const char* &bufferBegin, const char* &bufferEnd
     const string&   redirectString = location->getReturnValue();
     if (!redirectString.empty()) {
         int             redirectCode = stoi(redirectString.substr(0, 3));  // todo redirect parsing before starting server
-        const string&   redirectUrl = redirectString.substr(4);
+        const string&   redirectURL = redirectString.substr(4);
 
         request->setRedirectCode(redirectCode);
-        request->setRedirectUrl(redirectUrl);
+        request->setRedirectURL(redirectURL);
 
         showDebugMessage("Request: Redirect code: " + to_string(request->getRedirectCode()));
-        showDebugMessage("Request: Redirect URL: " + request->getRedirectUrl());
+        showDebugMessage("Request: Redirect URL: " + request->getRedirectURL());
     }
 
     bool   acceptEncoding = !(getOptionValueFromBuffer(headerBegin, "Accept-Encoding").empty());
 
     request->setAcceptEncodingFlag(acceptEncoding);
 
-    showDebugMessage("Request: Location URL: " + location->getUrl());
+    showDebugMessage("Request: Location URL: " + location->getURL());
     if (location->isCgiSupport()) {
         showDebugMessage("Request: Location supports CGI");
         const string&   cgiName = location->getCgiName();
@@ -219,7 +237,7 @@ void Request::initData(const char *headerEnd, const char *bufferEnd) {
 
     _bufDataBegin = headerEnd; // todo: full received переделать (что если отправляется данных на CGI больше, чем вмещает основной буфер)
 
-    if (remainBufferSize <= _contentLength) {
+    if (static_cast<long long>(remainBufferSize) <= _contentLength) {
         _fullReceived = true;
         _bufDataEnd = _bufDataBegin + _contentLength;
         _bufDataSize = _contentLength;
@@ -316,7 +334,7 @@ pair<string, string> Request::splitHeaderOptionToKeyValue(const string &str) {
     return make_pair(key, value);
 }
 
-string Request::defineRequestUrl(const char *begin) {
+string Request::defineRequestURL(const char *begin) {
 
     string        resultPath;
     const char*   firstSpacePos;
@@ -336,7 +354,7 @@ string Request::defineRequestUrl(const char *begin) {
     return resultPath;
 }
 
-const int Request::getResponseCode() const { return _responseCode; }
+int Request::getResponseCode() const { return _responseCode; }
 
 const std::string &Request::getMethod() const { return _method; }
 
@@ -354,7 +372,7 @@ const std::string &Request::getDataPath() const { return _dataPath; }
 
 const std::string &Request::getContentType() const { return _contentType; }
 
-const long long  Request::getContentLength() const {
+long long  Request::getContentLength() const {
     const string&   value = getHeaderEntryValue("Content-Length");
 
     if (value.empty())
@@ -365,19 +383,19 @@ const long long  Request::getContentLength() const {
     return contentLength;
 }
 
-const size_t Request::getHeaderSize() const { return _headerSize; }
+size_t Request::getHeaderSize() const { return _headerSize; }
 
-const size_t Request::getSize() const { return _size; }
+size_t Request::getSize() const { return _size; }
 
 bool Request::isFullReceived() const { return _fullReceived; }
 
-const size_t Request::getRemainingDataSize() const { return _contentLength - _handledDataSize;  }
+size_t Request::getRemainingDataSize() const { return _contentLength - _handledDataSize;  }
 
-const string &Request::getUrl() const { return _url; }
+const string &Request::getURL() const { return _url; }
 
-const int Request::getRedirectCode() const { return _redirectCode; }
+int Request::getRedirectCode() const { return _redirectCode; }
 
-const string &Request::getRedirectUrl() const { return _redirectUrl; }
+const string &Request::getRedirectURL() const { return _redirectURL; }
 
 bool Request::isRedirect() const { return _redirectCode != 0; }
 
@@ -385,7 +403,7 @@ bool Request::isKeepAlive() const { return _keepAlive; }
 
 bool Request::isChunked() const { return _chunked; }
 
-const int Request::getId() const { return _id; }
+int Request::getId() const { return _id; }
 
 bool Request::isFullProcessed() const { return _fullProcessed; }
 
@@ -414,11 +432,11 @@ void Request::setContentType(const std::string &contentType) { _contentType = co
 
 void Request::setContentLength(const long long contentLength) { _contentLength = contentLength; }
 
-void Request::setUrl(const string &url) { _url = url; }
+void Request::setURL(const string &url) { _url = url; }
 
 void Request::setRedirectCode(const int code) { _redirectCode = code; }
 
-void Request::setRedirectUrl(const string &url) { _redirectUrl = url; }
+void Request::setRedirectURL(const string &url) { _redirectURL = url; }
 
 void Request::setSize(size_t size) { _size = size; }
 

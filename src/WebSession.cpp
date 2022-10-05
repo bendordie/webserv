@@ -207,7 +207,7 @@ bool WebSession::writeDataOnDisk(Request *request, const Location *location) {
         request->setDataPath(url);
     }
 
-    if (request->getHandledDataSize() + dataSize > location->getClientBodySize()) {
+    if (request->getHandledDataSize() + dataSize > static_cast<unsigned long>(location->getClientBodySize())) {
         request->setResponseCode(global::response_status::ENTITY_TOO_LARGE);
         return false;
     }
@@ -273,7 +273,7 @@ void WebSession::decodeChunkedTransfer(const char* begin, const char* end, Reque
     int              chunkSize;
 
     chunkSize = stoi(rows[0]);  // TODO: exception handler
-    for (int i = 1; chunkSize > 0 && i + 1 < rows.size(); ++i) {
+    for (size_t i = 1; chunkSize > 0 && i + 1 < rows.size(); ++i) {
         request->appendData(rows[i].begin().base(), rows[i].end().base());
         chunkSize = stoi(rows[i + 1]);
         if (chunkSize == 0) {

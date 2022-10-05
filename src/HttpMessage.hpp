@@ -33,8 +33,6 @@ public:
     HttpMessage(const char* rawDataBegin, const char* rawDataEnd);
     HttpMessage(const char* rawData, size_t rawDataSize);
     virtual ~HttpMessage();
-    HttpMessage(const HttpMessage &other);
-    HttpMessage& operator=(const HttpMessage &other);
 
     const string&        getProtocol() const;
     string               getHeaderEntryValue(const string &key) const;

@@ -41,12 +41,12 @@ public:
     static bool                   isRequestLineValid(const char* requestBegin);
     static string                 defineRequestMethod(const char* begin);
     static const char*            defineHeaderEnd(const char* begin);
-    static string                 defineRequestUrl(const char* begin);
+    static string                 defineRequestURL(const char* begin);
     static pair<string, string>   splitHeaderOptionToKeyValue(const string& str);
     static void                   defineHeaderParams(bool keep_alive, long long int content_length, string& content_type);
 
-    const int                     getId() const;
-    const int                     getResponseCode() const;
+    int                           getId() const;
+    int                           getResponseCode() const;
     const string&                 getMethod() const;
     const Location*               getLocation() const;
     const char*                   getBuffedDataBegin() const;
@@ -55,13 +55,13 @@ public:
     size_t                        getHandledDataSize() const;
     const string&                 getDataPath() const;
     const string&                 getContentType() const;
-    const long long               getContentLength() const;
-    const size_t                  getHeaderSize() const;
-    const size_t                  getSize() const;
-    const size_t                  getRemainingDataSize() const;
-    const string&                 getUrl() const;
-    const int                     getRedirectCode() const;
-    const string&                 getRedirectUrl() const;
+    long long                     getContentLength() const;
+    size_t                        getHeaderSize() const;
+    size_t                        getSize() const;
+    size_t                        getRemainingDataSize() const;
+    const string&                 getURL() const;
+    int                           getRedirectCode() const;
+    const string&                 getRedirectURL() const;
     bool                          isRedirect() const;
     bool                          isChunked() const;
     bool                          isFullReceived() const;
@@ -80,9 +80,9 @@ public:
     void                          setDataPath(const string& path);
     void                          setContentType(const string& contentType);
     void                          setContentLength(const long long int contentLength);
-    void                          setUrl(const string& url);
+    void                          setURL(const string& url);
     void                          setRedirectCode(const int code);
-    void                          setRedirectUrl(const string& url);
+    void                          setRedirectURL(const string& url);
     void                          setSize(size_t size);
     void                          setChunked(bool value);
     void                          setFullReceived(bool value);
@@ -107,7 +107,7 @@ private:
     const Location*   _location;
 
     int               _redirectCode;
-    string            _redirectUrl;
+    string            _redirectURL;
 
     size_t            _size;
     size_t            _headerSize;

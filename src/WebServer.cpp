@@ -29,7 +29,7 @@ WebServer::WebServer(EventSelector *event_selector, int port, int fd, const Conf
 
 WebServer::WebServer(const WebServer &other)
     : FdHandler(other.getFd()), _port(other._port), _indexInConfig(other._indexInConfig),
-    _eventSelector(other._eventSelector), _config(other._config), _timeoutMutex(other._timeoutMutex) {}
+    _config(other._config), _eventSelector(other._eventSelector), _timeoutMutex(other._timeoutMutex) {}
 
 WebServer::~WebServer() {
 
@@ -122,6 +122,9 @@ void WebServer::handle(bool read, bool write) {
 
     if (!read)
         return;
+
+    (void)write;
+
     int                  clientSocket;
     struct sockaddr_in   addr;
     socklen_t            len = sizeof(addr);
@@ -152,17 +155,6 @@ void WebServer::removeSession(WebSession *session) {
 
     showDebugMessage("WebServer: Deleting session...");
     delete session;
-
-//    for (auto it = _sessions.begin(); it != _sessions.end(); ++it) {
-//        if ((*it) == session) {
-//            showDebugMessage("WebServer: WebSession "+ to_string(session->getFd()) +
-//                                                                    " has been removed. Closing connection...");
-//            delete *it;
-//            _sessions.erase(it);
-//            showDebugMessage("WebServer: Deleting session...");
-//            return;
-//        }
-//    }
 }
 
 void WebServer::initContentTypes() {

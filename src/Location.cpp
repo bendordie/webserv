@@ -13,7 +13,6 @@ Location::Location(const Config &config, int serverIndexInConfig, const string &
 
     // common options
     initSingleTrait(_serverName, "server_name");
-//    initSingleTrait(_listen_addr, "listen");
     initSingleTrait(_root, "root");
     initSingleTrait(_autoindex, "autoindex", Utils::strToBool);
     initSingleTrait(_clientBodySize, "client_body_size", Utils::strToLongLong);
@@ -29,6 +28,9 @@ Location::Location(const Config &config, int serverIndexInConfig, const string &
     initSingleTrait(_autoindex, "location " + _url + ".autoindex", Utils::strToBool);
     initMultipleTrait(_indexNames, "location " + _url + ".index");
     initMultipleTrait(_methodsAllowed, "location " + _url + ".methods");
+
+    if (_root.length() > 1 && *_root.rbegin() == '/')
+        _root.pop_back();
 
     showDebugMessage("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
 }
@@ -54,19 +56,18 @@ void Location::initSingleTrait(T &trait, const string &optionName, T (*strToT)(c
 }
 
 void Location::initMultipleTrait(list<string> &optionList, const string &optionName) {
-    if (!_config.isOptionDefined(_serverIndexInConfig, optionName))
-    {
-        std::cout << "optionName: " << optionName << "$ return" << std::endl;
+    if (!_config.isOptionDefined(_serverIndexInConfig, optionName)) {
+        showDebugMessage("optionName: " + optionName + "$ return");
         return;
     }
+    showDebugMessage("optionName: " + optionName + "$");
 
-    std::cout << "optionName: " << optionName << "$" << std::endl;
     optionList.clear();
     vector<string>    options = Utils::split(_config[to_string(_serverIndexInConfig) + ".server." + optionName], ',');
 
     for (auto it = options.begin(); it != options.end(); ++it) {
         optionList.push_front(*it);
-        std::cout << "option: " << *it << "$" << std::endl;
+        showDebugMessage("option: " + *it + "$");
     }
 }
 
@@ -80,7 +81,7 @@ const list <string> Location::getIndexNames() const { return _indexNames; }
 
 const list <string> Location::getMethodsAllowed() const { return _methodsAllowed; }
 
-const std::string &Location::getUrl() const { return _url; }
+const std::string &Location::getURL() const { return _url; }
 
 const string &Location::getReturnValue() const { return _returnValue; }
 
@@ -114,4 +115,4 @@ void Location::setMethodsAllowed(const list<string> &methodsAllowed) { _methodsA
 
 void Location::setAutoindex(bool value) { _autoindex = value; }
 
-void Location::setUrl(const std::string &url) { _url = url; }
+void Location::setURL(const std::string &url) { _url = url; }

@@ -6,7 +6,7 @@
 
 vector<string> Utils::split(const string &str, char ch) {
 
-    vector<string> result;
+    vector<string>   result;
 
     if (str.empty())
         return result;
@@ -23,11 +23,12 @@ vector<string> Utils::split(const string &str, char ch) {
             result.push_back(str.substr(i, str.length()));
         }
     }
+
     return result;
 }
 
 vector<string> Utils::split(const string &str, const string &val) {
-    vector<string> result;
+    vector<string>   result;
 
     if (str.empty())
         return result;
@@ -35,7 +36,7 @@ vector<string> Utils::split(const string &str, const string &val) {
         result.push_back(str);
         return (result);
     }
-    size_t i = 0;
+    size_t   i = 0;
     for (; i != str.length() && strnstr(&str[i], val.c_str(), val.length()); i += val.length()) {}
     for (size_t j = str.find(val, i); j != string::npos;) {
         result.push_back(str.substr(i,j - i));
@@ -46,14 +47,15 @@ vector<string> Utils::split(const string &str, const string &val) {
             result.push_back(str.substr(i, str.length()));
         }
     }
+
     return result;
 }
 
 string Utils::getTimeInString() {
-    struct timeval  tv;
-    time_t          nowtime;
-    struct tm       *nowtm;
-    char            tmbuf[64];
+    struct timeval   tv;
+    time_t           nowtime;
+    struct tm*       nowtm;
+    char             tmbuf[64];
 
     gettimeofday(&tv, NULL);
     nowtime = tv.tv_sec;
@@ -64,7 +66,7 @@ string Utils::getTimeInString() {
 }
 
 string Utils::getExtension(const string &file_name) {
-    size_t pos = file_name.rfind('.');
+    size_t   pos = file_name.rfind('.');
 
     if (pos <= 0) return "";
     return file_name.substr(pos+1, string::npos);
@@ -77,56 +79,31 @@ bool Utils::searchFileInDir(const char* dir_path, const char* file_name) {
 
     dirp = opendir(dir_path);
     if (dirp == NULL) {
-        cout << "Can't open directory" << endl;
+        std::cerr << "searchFileInDir(): Can't open directory" << endl;
         return false;
     }
     len = strlen(file_name);
     dp = readdir(dirp);
-    while (dp)
-    {
-        if (dp->d_namlen == len && strcmp(dp->d_name, file_name) == 0)
-        {
+    while (dp) {
+        if (dp->d_namlen == len && strcmp(dp->d_name, file_name) == 0) {
             (void)closedir(dirp);
             return true;
         }
         dp = readdir(dirp);
     }
     (void)closedir(dirp);
+
     return false;
 }
 
-//bool Utils::searchDirInDir(const char *dir_path, const char *directory) {
-//    size_t			len;
-//    struct dirent	*dp;
-//    DIR				*dirp;
-//
-//    dirp = opendir(dir_path);
-//    if (dirp == NULL) {
-//        cout << "Can't open directory" << endl;
-//        return false;
-//    }
-//    len = strlen(file_name);
-//    dp = readdir(dirp);
-//    while (dp)
-//    {
-//        if (dp->d_namlen == len && strcmp(dp->d_name, file_name) == 0)
-//        {
-//            (void)closedir(dirp);
-//            return true;
-//        }
-//        dp = readdir(dirp);
-//    }
-//    (void)closedir(dirp);
-//    return false;
-//}
-
 bool Utils::isPathExist(const string &path) {
-        struct stat buffer;
+        struct stat   buffer;
+
         return (stat(path.c_str(), &buffer) == 0);
 }
 
 bool Utils::isPathAccessed(const string &path) {
-    struct stat buffer;
+    struct stat   buffer;
 
     stat(path.c_str(), &buffer);
     return (EACCES);
@@ -134,9 +111,8 @@ bool Utils::isPathAccessed(const string &path) {
 
 
 bool Utils::getDirContent(const char* dir_path, list<struct dirent> &content) {
-    size_t			len;
-    struct dirent	*dp;
-    DIR				*dirp;
+    struct dirent*   dp;
+    DIR*             dirp;
 
     dirp = opendir(dir_path);
     if (dirp == NULL) {
@@ -144,32 +120,29 @@ bool Utils::getDirContent(const char* dir_path, list<struct dirent> &content) {
         return false;
     }
     dp = readdir(dirp);
-//    int i = 0;
-    while (dp)
-    {
-//        cout << i << endl;
+    while (dp) {
         content.push_back(*dp);
         dp = readdir(dirp);
-//        i++;
     }
     (void)closedir(dirp);
+
     return true;
 }
 
 string Utils::getFileLastModTime(const string& file_path) {
     struct stat     result;
     time_t          mod_time;
-    struct tm       *nowtm;
+    struct tm*      nowtm;
     char            tmbuf[64];
 
-    if(stat(file_path.c_str(), &result) == 0)
-    {
+    if (stat(file_path.c_str(), &result) == 0) {
         mod_time = result.st_mtime;
         nowtm = localtime(&mod_time);
         strftime(tmbuf, sizeof tmbuf, "%a, %d %b %Y %H:%M:%S GMT", nowtm);
     } else {
         return getTimeInString();
     }
+
     return tmbuf;
 }
 
@@ -203,18 +176,13 @@ Utils::t_file Utils::readFile(string filePath, size_t maxBufSize, size_t bytesAl
 
         const size_t   bufSize = bytesRemaining < maxBufSize ? bytesRemaining : maxBufSize;
 
-//            struct stat fi;
-
-//            bzero(&fi, sizeof(fi));
-//            stat(file_path.c_str(), &fi);
-
         buf = new char[bufSize];
         *buf = 0;
         stream.read(buf, bufSize);
         stream.close();
     }
     catch (exception &ex) {
-        cout << ex.what() << endl;
+        std::cerr << ex.what() << endl;
     }
     file.data = buf;
     file.bytes_read = stream.gcount();
@@ -235,17 +203,6 @@ Utils::findKey(map<string, string>::const_iterator begin, map<string, string>::c
     return end;
 }
 
-//template <class T1, class T2>
-//const typename map<T1, T2>::const_iterator
-//Utils::findKey(typename map<T1, T2>::const_iterator begin, typename map<T1, T2>::const_iterator end,
-//        const T2 &value) {
-//    for (; begin != end; ++begin) {
-//        if (begin->second == value)
-//            return begin;
-//    }
-//    return end;
-//}
-
 bool Utils::strToBool(const string &str) {
     if (str == "on" || str == "1" || str == "true")
         return true;
@@ -258,23 +215,20 @@ long long Utils::strToLongLong(const string &str) {
 
 string Utils::intToHexString(int value) {
 
-    ostringstream oss;
+    ostringstream   oss;
 
     oss << std::hex << value;
 
     return oss.str();
 }
 
-//safsgjrekolafer
-//        gola
-
 const char *Utils::reverse_strstr(const char *source, const char *needle) {
 
-    int   sourceLastElem = strlen(source) - 1;
-    int   needleLastElem = strlen(needle) - 1;
-    for (size_t i = sourceLastElem, j = needleLastElem; i >= 0 && i >= needleLastElem; --i) {
+    size_t   sourceLastElem = strlen(source) - 1;
+    size_t   needleLastElem = strlen(needle) - 1;
+    for (size_t i = sourceLastElem; i >= 0 && i >= needleLastElem; --i) {
         if (source[i] == needle[needleLastElem]) {
-            for (int k = 0; source[i - k] == needle[needleLastElem - k]; ++k) {
+            for (size_t k = 0; source[i - k] == needle[needleLastElem - k]; ++k) {
                 if (k == needleLastElem) {
                     return &source[i - k];
                 }
@@ -284,19 +238,3 @@ const char *Utils::reverse_strstr(const char *source, const char *needle) {
 
     return nullptr;
 }
-
-//template <class T1, class T2>
-//const typename map<T1, T2>::const_iterator
-//Utils::findKey(typename map<T1, T2>::const_iterator begin, typename map<T1, T2>::const_iterator end,
-//               const T2 &value, T1) {
-//    for (; begin != end; ++begin) {
-//        if (begin->second == value)
-//            return begin;
-//    }
-//    return end;
-//}
-
-//unsigned int Utils::getStrFileSize(const string &file_path) {
-//    struct stat fi;
-//
-//}

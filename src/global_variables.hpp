@@ -11,7 +11,7 @@ using std::string;
 using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 using PairList = std::list<std::pair<string, string>>;
 
-#define DEBUG
+//#define DEBUG
 
 namespace global {
 
@@ -24,7 +24,7 @@ namespace global {
 
 #ifdef DEBUG
     static const int            DEBUG_DELAY_SEC = 1;
-#elif
+#else
     static const int            DEBUG_DELAY_SEC = 0;
 #endif
 

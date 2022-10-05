@@ -22,6 +22,8 @@ using namespace std;
 void showDebugMessage(const string& message) {
 #ifdef DEBUG
     std::cout << message << std::endl;
+#else
+    (void)message;
 #endif
 }
 
@@ -49,7 +51,7 @@ extern bool initServers(const Config &config, EventSelector *eventSelector) {
     int                port;
     WebServer*         newServer;
 
-    for (int idx = 0; idx < 1 /*config.size()*/; ++idx) { // TODO: hardcode
+    for (size_t idx = 0; idx < /*1*/ config.size(); ++idx) { // TODO: hardcode
         showDebugMessage("Server idx " + to_string(idx));
         listenFieldExist = config.isOptionDefined(idx, "listen");
         if (!listenFieldExist) {
@@ -90,17 +92,6 @@ extern bool initServers(const Config &config, EventSelector *eventSelector) {
     }
     return true;
 }
-
-//std::vector<string> copyEnv(char* const env[]) {
-//
-//    vector<string>   result;
-//
-//    for (int i = 0; env[i]; ++i) {
-//        result.push_back(env[i]);
-//    }
-//
-//    return result;
-//}
 
 int main() {
 

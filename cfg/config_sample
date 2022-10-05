@@ -1,8 +1,8 @@
-server {		# just for testing. there is nothing interesting
+server {
    listen             80;
-   server_name        10.21.23.103;
+   server_name        localhost;
    root               /Users/cshells/Desktop/git_webserv;
-   client_body_size   100;
+   client_body_size   1000;
    index              index4.html, index.htm, index.php;
    methods            GET, POST, DELETE;
 
@@ -10,111 +10,71 @@ server {		# just for testing. there is nothing interesting
 	    methods     GET, POST, DELETE;
 		root        /Users/cshells/Desktop/git_webserv/www/default_site;
 		index       index.html;
-		autoindex   on;
-		#return     301 https://vk.com;
-
+		autoindex   off;
    }
    location /post_body {
         methods            GET, POST;
-        client_body_size   100;
-        upload	           /Upload ;
-        index              index2.html;
-        root               /Users/cshells/Desktop/git_webserv;
-
-        cgi_path           /Users/cshells/Desktop/git_webserv/default_form_cgi.py;
-        cgi                default_form_cgi.py;
+        client_body_size   4000000;
+        index              upload.html;
+        root               /Users/cshells/Desktop/git_webserv/www/upload_form;
    }
    location /directory {
         methods    GET POST;
-        root       789/Users/cmarsha/Desktop/webserv/YoupiBanane;
+        root       /Users/cshells/Desktop/git_webserv/www/default_site;
         index      youpi.bad_extension;
-        cgi_path   /Users/cshells/Desktop/git_webserv/mycgi;
-        cgi        mycgi;
+        autoindex   on;
    }
+   location /redirect {
+        methods    GET;
+        root       /Users/cshells/Desktop/git_webserv;
+
+        return     301 https://vk.com;
+  }
 }
 
 server {
-	listen             1002, 1027;
-	server_name        et-j3:1027;
+	listen             1027;
+	server_name        another_host;
 	root               /Users/cshells/Desktop/git_webserv;
 	index              index.html;
 	client_body_size   1000000010;
 
-	location /do_return {
-		#methods   POST, PUT, DELETE ;
-		return     301 https://vk.com;
-	}
-	location / {
+    location / {
 	    root      /Users/cshells/Desktop/git_webserv/www/personal_site;
 	    index     index.html;
 	    methods   GET;
 	}
+	location /simple_form {
+		methods    GET, POST;
+        root       /Users/cshells/Desktop/git_webserv/www/simple_form;
+        index      form.html;
+
+		cgi_path   /Users/cshells/Desktop/git_webserv/cgi/default_form_cgi.py;
+        cgi        default_form_cgi.py;
+	}
+	location /multiple {
+    	    root      /Users/cshells/Desktop/git_webserv/www/personal_site;
+    	    index     index.html;
+    	    methods   GET, POST;
+
+    	    cgi_path   /Users/cshells/Desktop/git_webserv/cgi/mycgi;
+            cgi        mycgi;
+    }
 }
 
 server {
-	listen             1028;
-	server_name        et-j3.local;
+	listen             6028;
+	server_name        gang_bang_host;
 	root               /Users/cshells/Desktop/git_webserv;
 	index              index.html;
 	client_body_size   1000000010;
 
 	location /return_404 {
-		methods   GET, DELETE ;
-		return     404 https://does_not_matter
+		methods   GET, DELETE;
+		return    404 https://does_not_matter
 	}
 	location / {
-		methods     POST,PUT,DELETE;
-		autoindex   True;
-	}
-}
-
-# root only on localhost
-server {
-    listen             1029 ;
-	server_name        127.0.0.1;
-	methods            GET, POST;
-	client_body_size   1000000010;
-	404 404new.html;
-
-	location /ttt {
-		root            /Users/cmarsha;
-		autoindex 1;
-	}
-	location /nnn {
-		root        /Users/cshells/Desktop/git_webserv;
-		autoindex   false;
-		index       .shelkers;
-	}
-}
-
-server {
-    listen             1030;
-	methods            GET, POST;
-	server_name        "localhost";
-	return             307 https://google.com;
-	client_body_size   1000000010;
-
-	location /ttt {
-		root        /Users/cshells/Desktop/git_webserv;
-		autoindex   0;
-	}
-	location /post_body {
-		methods            POST;
-		client_body_size   100;
-		cgi_path    	   /Users/cmarsha/Desktop/webserv/cgi_tester;
-		cgi         	   bla;
-	}
-	location /directory {
-		autoindex   1;
-		methods		POST;
-		return      00000 ;
-		root        /Users/cmarsha/Desktop/webserv/YoupiBanane;
-		#index      youpi.bad_extension;
-		cgi_path    /Users/cmarsha/Desktop/webserv/cgi_tester;
-		cgi         bla;
-	}
-	location / {
-		root        /Users/cmarsha;
-		autoindex   On;
+		methods     POST, DELETE;
+		autoindex   on;
 	}
 }

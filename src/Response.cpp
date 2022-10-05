@@ -14,7 +14,7 @@
 
 // SIMPLE (DEFAULT)
 Response::Response(const string &protocol, int statusCode, bool keepAliveFlag,
-                   bool acceptEncodingFlag, const PairList& cookies, const string &redirectUrl)
+                   bool acceptEncodingFlag, const PairList& cookies, const string &redirectURL)
         : HttpMessage(protocol), _statusCode(statusCode), _contentType("text/html"), _keepAliveFlag(keepAliveFlag) {
 
     showDebugMessage("Response: SIMPLE constructor");
@@ -34,7 +34,7 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag,
     bool           chunked = (_protocol == "HTTP/1.1") && acceptEncodingFlag;
 
     _contentLength = page.size();
-    makeResponseHeader(chunked, currentTime, cookies, redirectUrl);
+    makeResponseHeader(chunked, currentTime, cookies, redirectURL);
     setData(_header.begin().base(), _header.end().base());
     if (chunked)
         appendChunkedData(page.begin().base(), page.end().base(), true);
@@ -49,7 +49,7 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag,
 
 // CHUNKED
 Response::Response(const string &protocol, const string &dataPath, size_t dataBytesProcessed)
-    : HttpMessage(protocol), _dataBytesHandled(dataBytesProcessed), _contentType("text/html") {
+    : HttpMessage(protocol), _contentType("text/html"), _dataBytesHandled(dataBytesProcessed) {
 
     showDebugMessage("Response: CHUNKED constructor");
 
@@ -72,8 +72,8 @@ Response::Response(const string &protocol, const string &dataPath, size_t dataBy
 // FILE
 Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
                    const string &dataPath, const map<string, string> &contentTypes, const PairList& cookies)
-    : HttpMessage(protocol), _statusCode(statusCode), _keepAliveFlag(keepAliveFlag),
-    _dataBytesHandled(0), _fullProcessed(false) {
+    : HttpMessage(protocol), _statusCode(statusCode), _dataBytesHandled(0),
+      _keepAliveFlag(keepAliveFlag), _fullProcessed(false) {
 
     showDebugMessage("Response: FILE constructor: code = " + to_string(statusCode));
 
@@ -106,16 +106,14 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, b
 
     makeResponseHeader(chunked, fileTime, cookies);
     setData(_header.begin().base(), _header.end().base());
-    if (file.data && file.bytes_read > 0) {
-        if (chunked) {
-            showDebugMessage("Response: Appending chunked data");
-            showDebugMessage("Response: Is EOF reached: " + to_string(file.eof));
+    if (chunked) {
+        showDebugMessage("Response: Appending chunked data");
+        showDebugMessage("Response: Is EOF reached: " + to_string(file.eof));
 
-            appendChunkedData(file.data, file.data + file.bytes_read, file.eof);
-        }
-        else
-            appendData(file.data, file.data + file.bytes_read);
+        appendChunkedData(file.data, file.data + file.bytes_read, file.eof);
     }
+    else
+        appendData(file.data, file.data + file.bytes_read);
     _fullProcessed = file.eof;
 
     {
@@ -131,7 +129,8 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, b
 // RAW DATA (FOR AUTOINDEX)
 Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
                    const char *data, size_t dataSize, string contentType, const PairList& cookies)
-    : HttpMessage(protocol), _statusCode(statusCode), _keepAliveFlag(keepAliveFlag), _contentType(contentType) {
+    : HttpMessage(protocol), _statusCode(statusCode), _contentType(contentType), _contentLength(dataSize),
+    _keepAliveFlag(keepAliveFlag) {
 
     showDebugMessage("Response: RAW DATA constructor: code = " + to_string(statusCode));
 
@@ -165,7 +164,7 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, b
 Response::~Response() {}
 
 void Response::makeResponseHeader(bool HTTPv1_1, const string &fileTime,
-                                  const PairList& cookies, const string &redirectUrl) {
+                                  const PairList& cookies, const string &redirectURL) {
 
     _header.clear();
     _header.append(_protocol + " " + to_string(_statusCode) + " " + _statusMsg + "\r\n");
@@ -196,7 +195,7 @@ void Response::makeResponseHeader(bool HTTPv1_1, const string &fileTime,
         _header.append("Content-Length: " + to_string(_contentLength) + "\r\n");
 
     if (_statusCode / 100 == 3)
-        _header.append("Location: " + redirectUrl + "\r\n");
+        _header.append("Location: " + redirectURL + "\r\n");
 
     _header.append("\r\n");
 }
@@ -257,14 +256,14 @@ Response *Response::createResponse(const WebSession *session, const Request *req
         showDebugMessage("Response: Creating redirect response");
 
         int             redirectCode = request->getRedirectCode();
-        const string&   redirectUrl = request->getRedirectUrl();
+        const string&   redirectURL = request->getRedirectURL();
 
         if (global::responseStatuses.find(redirectCode) == global::responseStatuses.end()) {
             std::cerr << "Response: No such code response" << std::endl;
             return nullptr;
         }
 
-        return new Response(protocol, redirectCode, keepAliveFlag, acceptEncodingFlag, cookies, redirectUrl);
+        return new Response(protocol, redirectCode, keepAliveFlag, acceptEncodingFlag, cookies, redirectURL);
     }
 
     const string&   requestMethod = request->getMethod();
@@ -280,25 +279,72 @@ Response *Response::createResponse(const WebSession *session, const Request *req
                        keepAliveFlag, acceptEncodingFlag, cookies);
 }
 
+// Request URL:    /
+// Location root:  /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/
+
+
+// Request URL:    /resources
+// Location root:  /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources
+
+
+// Request URL:    /directory
+// Location root:  /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/
+
+
+// Request URL:    /directory/
+// Location root:  /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/
+
+
+// Request URL:    /directory/resources
+// Location root:  /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources
+
+
+// Request URL:    /directory/resources/
+// Location root:  /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources/
+
+
+// Request URL:    /directory/resources/img/image.png
+// Location root:  /cshells/Desktop/git_webserv/www/default_site
+// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources/img/image.png
+
 Response *Response::createGetResponse(const WebSession* session, const Request *request, const WebServer *server) {
 
     showDebugMessage("Response: Creating GET response...");
 
     const string&     protocol = request->getProtocol();
-    const string&     requestedPath = request->getUrl();
     const Location*   location = request->getLocation();
-    string            absoluteDataPath =  location->getRoot() + requestedPath;
+    string            requestedURL = request->getURL();
+    string            requestedResourcePath = requestedURL;
+
+    if (requestedURL != "/" && location->getURL() != "/")
+        requestedResourcePath = requestedURL.substr(location->getURL().length());
+
+    if (requestedResourcePath.empty())
+        requestedResourcePath.append("/");
+
+    string            absoluteDataPath =  location->getRoot() + requestedResourcePath;
+
     list<string>      indexes = location->getIndexNames();
     bool              autoindex = location->isAutoindex();
     const PairList&   cookies = session->getCookiesList();
 
-    showDebugMessage("Response: Requested path: ");
-    showDebugMessage("Response: Defining location...");
+    showDebugMessage("Response: Requested resource path: " + requestedResourcePath);
+    showDebugMessage("Response: Location URL: " + location->getURL());
+    showDebugMessage("Response: Location Root: " + location->getRoot());
     showDebugMessage("Response: Autoindex: " + to_string(autoindex));
 
-    bool   pathExistence, pathAccess;
+    const map<string, string>&   contentTypes = server->getContentTypes();
+    bool                         keepAliveFlag  = request->isKeepAlive();
+    bool                         acceptEncodingFlag = request->isAcceptEncoding();
+    bool                         pathExistence, pathAccess;
 
-    if (requestedPath == "/") {
+    if (requestedResourcePath == "/") {
         showDebugMessage("Response: Index is required");
 
         for (auto indexFileName = indexes.begin(); indexFileName != indexes.end(); ++indexFileName) {
@@ -311,10 +357,6 @@ Response *Response::createGetResponse(const WebSession* session, const Request *
             }
         }
     }
-
-    const map<string, string>&   contentTypes = server->getContentTypes();
-    bool                         keepAliveFlag  = request->isKeepAlive();
-    bool                         acceptEncodingFlag = request->isAcceptEncoding();
 
     showDebugMessage("Response: Path required: " + absoluteDataPath);
     pathExistence = Utils::isPathExist(absoluteDataPath);
@@ -331,14 +373,14 @@ Response *Response::createGetResponse(const WebSession* session, const Request *
                             keepAliveFlag, acceptEncodingFlag, cookies);
     }
 
-    if (absoluteDataPath[absoluteDataPath.length() - 1] == '/') {
+    if (*absoluteDataPath.rbegin() == '/') {
         showDebugMessage("Response: Handling as directory...");
 
         if (!autoindex) {
             return new Response(protocol, global::response_status::FORBIDDEN,
                                 keepAliveFlag, acceptEncodingFlag, cookies);
         }
-        string   autoindexPage = makeAutoindexPage(requestedPath, absoluteDataPath);
+        string   autoindexPage = makeAutoindexPage(requestedURL, absoluteDataPath);
         size_t   autoindexSize = autoindexPage.length();
 
         return new Response(protocol, global::response_status::OK,
@@ -355,6 +397,8 @@ Response *Response::createGetResponse(const WebSession* session, const Request *
 }
 
 Response *Response::createPostResponse(const WebSession* session, const Request* request, const WebServer* server) {
+
+    (void)server;
 
     showDebugMessage("Response: Creating POST response...");
 
@@ -382,13 +426,14 @@ Response *Response::createPostResponse(const WebSession* session, const Request*
 
 Response *Response::createDeleteResponse(const WebSession* session, const Request* request, const WebServer* server) {
 
+    (void)server;
+
     showDebugMessage("Response: Creating DELETE response...");
 
     const string&                protocol = request->getProtocol();
     bool                         keepAliveFlag  = request->isKeepAlive();
     bool                         acceptEncodingFlag = request->isAcceptEncoding();
-    const map<string, string>&   contentTypes = server->getContentTypes();
-    const string&                url = request->getUrl();
+    const string&                url = request->getURL();
     const Location*              location = request->getLocation();
     const PairList&              cookies = session->getCookiesList();
 
@@ -435,7 +480,7 @@ string Response::makeStatusPage() {
            "</html>";
 }
 
-string Response::makeAutoindexPage(const string &uri, const string &abs_path) {
+string Response::makeAutoindexPage(const string &url, const string &abs_path) {
 
     showDebugMessage("Response: Preparing autoindex page...");
 
@@ -443,18 +488,18 @@ string Response::makeAutoindexPage(const string &uri, const string &abs_path) {
                    "<head><title>Index of ";
 
 
-    res += uri;
+    res += url;
     res += "</title></head>\n"
             "<body bgcolor=\"white\">\n"
             "<h1>Index of ";
-    res += uri;
+    res += url;
     res += "</h1><hr><pre><a href=\"../\">../</a>\n";
     list<struct dirent>  content;
     Utils::getDirContent(abs_path.c_str(), content);
     for (auto it = content.begin(); it != content.end(); ++it) {
         if (!strcmp(it->d_name, ".") || !strcmp(it->d_name, ".."))
             continue;
-        res += makeAutoindexLine(it, abs_path);
+        res += makeAutoindexLine(it, url, abs_path);
     }
     res += "</pre><hr></body>\n"
             "</html>";
@@ -462,14 +507,13 @@ string Response::makeAutoindexPage(const string &uri, const string &abs_path) {
     return res;
 }
 
-string Response::makeAutoindexLine(list<struct dirent>::iterator file, const string &path) {
+string Response::makeAutoindexLine(list<struct dirent>::iterator file, const string& url, const string& path) {
     struct stat   fi;
-    string        res = "<a href=\"";
+    string        result = "<a href=\"";
     string        size;
     const char*   tabs = "\t\t\t\t\t\t\t\t\t";
     string        name = file->d_name;
     string        currentPath = path + file->d_name;
-    int           tabOffset = strlen(file->d_name) / 8;
 
     stat(currentPath.c_str(), &fi);
     if (file->d_type == DT_DIR) {
@@ -477,12 +521,27 @@ string Response::makeAutoindexLine(list<struct dirent>::iterator file, const str
         size = "-";
     } else {
         size = to_string(fi.st_size);
+
     }
+    size_t   tabOffset = name.length() / 8;
     if (tabOffset >= strlen(tabs))
         tabOffset = strlen(tabs) - 1;
-    res += name + "\">" + name + "</a>" + &tabs[tabOffset] + Utils::getFileLastModTime(name) + "\t\t\t" + size + "\n";
 
-    return res;
+    result.append(url);
+    if (*url.rbegin() != '/')
+        result.append("/");
+
+    result.append(name);
+    result.append("\">");
+    result.append(name);
+    result.append("</a>");
+    result.append(&tabs[tabOffset]);
+    result.append(Utils::getFileLastModTime(name));
+    result.append("\t\t\t");
+    result.append(size);
+    result.append("\n");
+
+    return result;
 }
 
 const string &Response::getHeader() const { return _header; }

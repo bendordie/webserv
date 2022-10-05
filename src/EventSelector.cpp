@@ -20,10 +20,6 @@ EventSelector::~EventSelector() {
         delete [] _fd_array;
 }
 
-EventSelector::EventSelector(const EventSelector &other) {}
-
-EventSelector &EventSelector::operator=(const EventSelector &other) {}
-
 void EventSelector::add(FdHandler *handler) {
 
     int   i;

@@ -46,8 +46,6 @@ namespace Utils {
         bool     eof;
     }               t_file;
 
-//    typedef map<string, string>::const_iterator t_map_const_iter;
-
     vector<string>                         split(const string& str, char ch);
     vector<string>                         split(const string& str, const string& val);
     string                                 getTimeInString();
@@ -62,31 +60,8 @@ namespace Utils {
     long long                              strToLongLong(const string &str);
     string                                 intToHexString(int value);
     const char                             *reverse_strstr(const char* source, const char* needle);
-
-
-//    template <class T1, class T2>
-//    const typename map<T1, T2>::const_iterator
-//    findKey(typename map<T1, T2>::const_iterator begin, typename map<T1, T2>::const_iterator end,
-//            const T2 &value) {
-//        for (; begin != end; ++begin) {
-//            if (begin->second == value)
-//                return begin;
-//        }
-//        return end;
-//    }
-
     map<string, string>::const_iterator    findKey(map<string, string>::const_iterator begin, map<string,
                                                    string>::const_iterator end, const string& value);
-
-//    template <class T>
-//    typename T convertFromStr(const string &str, )
-
-//    template<class T1, class T2>
-//    const typename std::map<T1, T2>::const_iterator
-//    findKey(typename std::map<T1, T2>::const_iterator begin, typename std::map<T1, T2>::const_iterator end,  const T2 &value, T1);
-
-    //    static unsigned int             getStrFileSize(const std::string& file_path);
-    //    static bool                     searchDirInDir(const char* dir_path, const char* directory);
 
 };
 

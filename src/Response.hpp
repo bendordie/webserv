@@ -32,7 +32,7 @@ public:
 
     // SIMPLE / REDIRECT
     Response(const string &protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
-             const PairList& cookies, const string &redirectUrl = "");
+             const PairList& cookies, const string &redirectURL = "");
     // CHUNKED
     Response(const string &protocol, const string &dataPath, size_t dataBytesProcessed = 0);
     // FILE
@@ -45,8 +45,8 @@ public:
 
     static Response*   createResponse(const WebSession* session, const Request *request, const WebServer *server,
                                       const char* data = nullptr);
-    static string      makeAutoindexPage(const string &uri, const string &abs_path);
-    static string      makeAutoindexLine(list<struct dirent>::iterator file, const string &path);
+    static string      makeAutoindexPage(const string &url, const string &abs_path);
+    static string      makeAutoindexLine(list<struct dirent>::iterator file, const string& url, const string &path);
 
     string             makeStatusPage();
     bool               isFullProcessed() const;
@@ -59,7 +59,7 @@ protected:
 private:
 
     void               makeResponseHeader(bool chunked, const string &fileTime, const PairList& cookies,
-                                          const string &redirectUrl = "");
+                                          const string &redirectURL = "");
     static Response*   createGetResponse(const WebSession* session, const Request *request, const WebServer *server);
     static Response*   createPostResponse(const WebSession* session, const Request *request, const WebServer *server);
     static Response*   createDeleteResponse(const WebSession* session, const Request *request, const WebServer *server);
@@ -67,15 +67,12 @@ private:
     int             _statusCode;
     string          _statusMsg;
     string          _header;
-    int             _redirectCode;
-    string          _redirectUrl;
+    string          _redirectURL;
     string          _dataPath;
     string          _contentType;
     long long int   _contentLength;
     size_t          _dataBytesHandled;
-    size_t          _maxBufSize;
     bool            _keepAliveFlag;
-    bool            _chunked;
     bool            _fullProcessed;
 
 };

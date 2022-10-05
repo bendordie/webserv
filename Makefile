@@ -10,7 +10,7 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME = server
+NAME = webserv
 
 SRC =	src/webserv.cpp \
 		src/EventSelector.cpp \
@@ -28,14 +28,17 @@ OBJ = $(SRC:.cpp=.o)
 
 CXX = clang++ -std=c++11
 
-#CXXFLAGS = -Wall -Wextra -Werror
+CXXFLAGS = -Wall -Wextra -Werror
 
 RM = rm -rf
 
 all: $(NAME)
 
 $(NAME): $(SRC) src $(OBJ)
-	$(CXX) $(OBJ) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
+
+debug: $(SRC) src $(OBJ)
+	$(CXX) $(CXXFLAGS) -D DEBUG $(SRC) -o $(NAME)
 
 clean:
 	$(RM) $(OBJ)

@@ -36,10 +36,12 @@ const Location *VirtualServer::getLocation(const string &url) const {
 
     string   urlCopy = url;
 
-    if (urlCopy.length() > 1 && urlCopy[urlCopy.length() - 1] == '/')
+    if (urlCopy.length() > 1 && *urlCopy.rbegin() == '/')
         urlCopy.pop_back();
 
-    size_t   last_slash_pos = url.length() - 1;
+//    std::cout << "Result URL: " << urlCopy << "." << std::endl;
+
+    size_t   last_slash_pos = urlCopy.length();
 
     for (; last_slash_pos != string::npos; last_slash_pos = urlCopy.rfind('/', last_slash_pos - 1)) {
         auto location = _locations.begin();
@@ -50,6 +52,9 @@ const Location *VirtualServer::getLocation(const string &url) const {
 
             const string&   temp = last_slash_pos != 0 ?
                     urlCopy.substr(0, last_slash_pos) : urlCopy.substr(0, last_slash_pos + 1);
+
+//            std::cout << "location url: " + (*location)->_url + " & " + temp << std::endl;
+
             if ((*location)->_url == temp) {
                 return *location;
             }
