@@ -62,10 +62,10 @@ private:
     bool              _processed;
     WebServer*        _master;
     vector<char>      _tempBuffer;
-    queue<Request*>   _requestQueue;
+    list<Request*>    _requestQueue;
 
     bool              receiveData(size_t& bytesRead);
-    Response*         handleRequestByCgi(Request *request, const string& cgiPath);
+    Response*         handleRequestByCgi(Request* request, const string& cgiPath);
     bool              writeDataOnDisk(Request* request, const Location* location);
     void              handleRequest();
     void              decodeChunkedTransfer(const char* begin, const char* end, Request* request);

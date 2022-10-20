@@ -1,6 +1,6 @@
 #include "VirtualServer.hpp"
 
-VirtualServer::VirtualServer(const Config &config, int serverIndexInConfig) : _defaultLocation(nullptr) {
+VirtualServer::VirtualServer(const Config& config, int serverIndexInConfig) : _defaultLocation(nullptr) {
 
     initLocations(config, serverIndexInConfig);
     if (!_defaultLocation)
@@ -17,12 +17,14 @@ VirtualServer::~VirtualServer() {
 //    _locations.clear();
 }
 
-void VirtualServer::initLocations(const Config &config, int serverIndexInConfig) {
+void VirtualServer::initLocations(const Config& config, int serverIndexInConfig) {
 
     const set<string> &locations = config.getServerLocations(serverIndexInConfig);
 
     for (auto locationURL = locations.cbegin(); locationURL != locations.cend(); ++locationURL) {
-        auto *newLocation = new Location(config, serverIndexInConfig, *locationURL);
+
+        auto   newLocation = new Location(config, serverIndexInConfig, *locationURL);
+
         if (!_defaultLocation && *locationURL == "/") {
             _defaultLocation = newLocation;
         }
@@ -32,28 +34,21 @@ void VirtualServer::initLocations(const Config &config, int serverIndexInConfig)
 
 // /directory
 
-const Location *VirtualServer::getLocation(const string &url) const {
+const Location *VirtualServer::getLocation(const string& url) const {
 
     string   urlCopy = url;
 
     if (urlCopy.length() > 1 && *urlCopy.rbegin() == '/')
         urlCopy.pop_back();
 
-//    std::cout << "Result URL: " << urlCopy << "." << std::endl;
+    size_t   lastSlashPos = urlCopy.length();
 
-    size_t   last_slash_pos = urlCopy.length();
-
-    for (; last_slash_pos != string::npos; last_slash_pos = urlCopy.rfind('/', last_slash_pos - 1)) {
+    for (; lastSlashPos != string::npos; lastSlashPos = urlCopy.rfind('/', lastSlashPos - 1)) {
         auto location = _locations.begin();
         for (; location != _locations.end(); ++location) {
 
-//            std::cout << "location url: " + (*location)->_url + " & " + urlCopy.substr(0, last_slash_pos + 1) << std::endl;
-//            std::cout << "last_slash_pos: " << last_slash_pos << std::endl;
-
-            const string&   temp = last_slash_pos != 0 ?
-                    urlCopy.substr(0, last_slash_pos) : urlCopy.substr(0, last_slash_pos + 1);
-
-//            std::cout << "location url: " + (*location)->_url + " & " + temp << std::endl;
+            const string&   temp = lastSlashPos != 0 ?
+                    urlCopy.substr(0, lastSlashPos) : urlCopy.substr(0, lastSlashPos + 1);
 
             if ((*location)->_url == temp) {
                 return *location;

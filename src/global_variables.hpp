@@ -22,12 +22,6 @@ namespace global {
     static const int            FILE_READING_BUFFER_SIZE = 65535;
     static const int            TCP_BUFFER_SIZE = 16384;
 
-#ifdef DEBUG
-    static const int            DEBUG_DELAY_SEC = 1;
-#else
-    static const int            DEBUG_DELAY_SEC = 0;
-#endif
-
     namespace response_status {
 
         static const int   CONTINUE = 100;

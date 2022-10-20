@@ -84,23 +84,7 @@ Request *Request::createRequest(const char* & bufferBegin, const char* & bufferE
     return new Request(responseCode, protocol);
 }
 
-// Request URL:    /directory/resources
-// Root:           /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources
-
-// Request URL:    /directory/resources/img/image.png
-// Root:           /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources/img/image.png
-
-// Request URL:    /
-// Root:           /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/
-
-// Request URL:    /directory
-// Root:           /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/
-
-Request *Request::createRequest(const char* &bufferBegin, const char* &bufferEnd, const WebServer* server) {
+Request *Request::createRequest(const char* & bufferBegin, const char* & bufferEnd, const WebServer* server) {
 
     showDebugMessage("Request: Creating request...");
 
@@ -234,18 +218,18 @@ bool Request::initHeader(const char *headerBegin, const char *headerEnd) {
 void Request::initData(const char *headerEnd, const char *bufferEnd) {
 
     size_t   remainBufferSize = bufferEnd - headerEnd;
+    showDebugMessage("Request: Remain buffer size (except header): " + to_string(remainBufferSize));
 
     _bufDataBegin = headerEnd; // todo: full received переделать (что если отправляется данных на CGI больше, чем вмещает основной буфер)
 
-    if (static_cast<long long>(remainBufferSize) <= _contentLength) {
-        _fullReceived = true;
-        _bufDataEnd = _bufDataBegin + _contentLength;
-        _bufDataSize = _contentLength;
-    } else {
+    if (static_cast<long long>(remainBufferSize) < _contentLength) {
         _fullReceived = false;
         _bufDataEnd = bufferEnd;
         _bufDataSize = remainBufferSize;
-        _handledDataSize = remainBufferSize;
+    } else {
+        _fullReceived = true;
+        _bufDataEnd = _bufDataBegin + _contentLength;
+        _bufDataSize = _contentLength;
     }
     showDebugMessage("Request: Init data: _bufDataSize: " + to_string(_bufDataSize));
 }
@@ -378,7 +362,7 @@ long long  Request::getContentLength() const {
     if (value.empty())
         return -1;
 
-    long long   contentLength = std::atol(value.c_str()); // TODO: try catch?
+    long long   contentLength = std::atol(value.c_str());
 
     return contentLength;
 }

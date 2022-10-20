@@ -59,7 +59,7 @@ namespace Utils {
     bool                                   strToBool(const string& str);
     long long                              strToLongLong(const string &str);
     string                                 intToHexString(int value);
-    const char                             *reverse_strstr(const char* source, const char* needle);
+    const char*                            reverse_strstr(const char* source, const char* needle);
     map<string, string>::const_iterator    findKey(map<string, string>::const_iterator begin, map<string,
                                                    string>::const_iterator end, const string& value);
 

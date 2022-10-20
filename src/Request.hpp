@@ -95,9 +95,9 @@ private:
 
     Request();
 
-    bool                          initHeader(const char *headerBegin, const char *headerEnd);
-    void                          initParams(const char *requestBegin, const char *headerEnd);
-    void                          initData(const char *headerEnd, const char *bufferEnd);
+    bool                          initHeader(const char* headerBegin, const char* headerEnd);
+    void                          initParams(const char* requestBegin, const char* headerEnd);
+    void                          initData(const char* headerEnd, const char* bufferEnd);
 
     int               _id;
     int               _responseCode;

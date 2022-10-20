@@ -52,6 +52,5 @@ private:
 };
 
 void showDebugMessage(const string& message);
-void waitForDebug();
 
 #endif //WEBSERV_EVENTSELECTOR_HPP

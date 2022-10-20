@@ -124,7 +124,6 @@ public:
     bool isOptionDefined(int idx, const string& optionName) const {
 
         for (map<string, string>::const_iterator it = servers[idx].begin(); it != servers[idx].end(); it++) {
-//            std::cout << "first: " << it->first << ", second: " << it->second << std::endl;
             int find_idx = it->first.find(optionName);
             if (find_idx == strlen("server.")) {
                 return true;
@@ -157,6 +156,7 @@ public:
 
 
 private:
+
 	string to_lower(string &s) {
 		for (int i = 0; s[i] != '\0'; ++i)
 			s[i] = tolower(s[i]);

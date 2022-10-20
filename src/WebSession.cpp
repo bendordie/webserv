@@ -21,6 +21,7 @@ WebSession::WebSession(WebServer* master, int fd)
     _id = _idGenerator++;
     _cookies.emplace_back("SESSIONID", to_string(_id) + "repgmreojhgieor312432");
     _mainBuffer = new char[global::TCP_BUFFER_SIZE];
+    _tempBuffer.clear();
 }
 
 WebSession::~WebSession() {
@@ -29,17 +30,16 @@ WebSession::~WebSession() {
     delete [] _mainBuffer;
     showDebugMessage("WebSession " + to_string(getFd()) + ": Buffer cleared");
 
-    queue<Request*>   empty;
-    swap(_requestQueue, empty);
+    for(;!_requestQueue.empty();) delete _requestQueue.front(), _requestQueue.pop_front();
 
-//    for (auto request = _requestQueue.front(); !_requestQueue.empty(); request = _requestQueue.front()) {
-//        showDebugMessage("WebSession " + to_string(getFd()) + ": Request deleted");
-//        delete request;
-//        _requestQueue.pop();
+//    for (auto requestIter = _requestQueue.begin(); requestIter != _requestQueue.end(); ++requestIter) {
+//
 //    }
+//    queue<Request*>   empty;
+//    swap(_requestQueue, empty);
 }
 
-bool WebSession::wantBeWritten() const { return !_requestQueue.empty(); }//!_processed; }
+bool WebSession::wantBeWritten() const { return !_requestQueue.empty(); }
 
 bool WebSession::receiveData(size_t& bytesRead) {
 
@@ -91,7 +91,10 @@ void WebSession::handleRequest() {
 
     if (!_requestQueue.empty()) {
 
-        auto   previousRequest = _requestQueue.back();
+        showDebugMessage("WebSession " + to_string(getFd()) + ": Continue handling previous request");
+
+        auto   previousRequest = *_requestQueue.rbegin();
+
         if (previousRequest->getMethod() == "POST" && !previousRequest->isFullReceived()) {
 
             size_t        remainingBytes = previousRequest->getRemainingDataSize();
@@ -131,15 +134,13 @@ void WebSession::handleRequest() {
     Request*   newRequest;
     if (begin < end) {
 
-//        showDebugMessage("WebSession " + to_string(getFd()) + ": Buffer begin: " + string(begin, end));
-
         showDebugMessage("WebSession " + to_string(getFd()) + ": Checking if the message is complete");
 
         const char*   headerEnd = HttpMessage::findMessageEnd(begin);
         if (!headerEnd) {
             if (end - begin > global::MAX_CLIENT_MSG_SIZE) {
                 newRequest = Request::createRequest(begin, end, global::response_status::ENTITY_TOO_LARGE);
-                _requestQueue.push(newRequest);
+                _requestQueue.push_back(newRequest);
                 return;
                 // 413 ENTITY TO LARGE
             }
@@ -158,7 +159,7 @@ void WebSession::handleRequest() {
 
         const Location*   location = newRequest->getLocation();
 
-        _requestQueue.push(newRequest);
+        _requestQueue.push_back(newRequest);
 
         showDebugMessage("WebSession " + to_string(getFd()) + ": New request has been added to list");
 
@@ -177,7 +178,7 @@ void WebSession::handleRequest() {
                                                 + to_string(_requestQueue.size()) + " requests have been defined");
 }
 
-bool WebSession::writeDataOnDisk(Request *request, const Location *location) {
+bool WebSession::writeDataOnDisk(Request* request, const Location* location) {
 
     showDebugMessage("WebSession " + to_string(getFd()) + ": Prepare to write POST data on disk...");
 
@@ -242,9 +243,6 @@ bool WebSession::writeDataOnDisk(Request *request, const Location *location) {
         ofs.open(dataPath.c_str(), fstream::binary | fstream::app);
     }
 
-//    showDebugMessage("WebSession " + to_string(getFd()) + ": Data begin: " + dataBegin + "\n####################################################################");
-//    showDebugMessage("WebSession " + to_string(getFd()) + ": Data size: " + to_string(dataSize));
-
     if (ofs.is_open()) {
         ofs.write(dataBegin, dataSize);
         if (ofs.fail()) {
@@ -261,12 +259,12 @@ bool WebSession::writeDataOnDisk(Request *request, const Location *location) {
     }
     request->increaseHandledDataSize(dataSize);
 
-    showDebugMessage("WebSession " + to_string(getFd()) + ": Data has been successfully written");
+    showDebugMessage("WebSession " + to_string(getFd()) + ": " + to_string(dataSize) + " bytes has been successfully written");
 
     return true;
 }
 
-void WebSession::decodeChunkedTransfer(const char* begin, const char* end, Request *request) { // todo: если данные обрезаются на размере чанка?
+void WebSession::decodeChunkedTransfer(const char* begin, const char* end, Request* request) { // todo: если данные обрезаются на размере чанка?
 
     string           rawData(begin, end);
     vector<string>   rows = Utils::split(rawData, "\r\n");
@@ -283,7 +281,7 @@ void WebSession::decodeChunkedTransfer(const char* begin, const char* end, Reque
     }
 }
 
-Response* WebSession::handleRequestByCgi(Request *request, const string& cgiPath) {
+Response* WebSession::handleRequestByCgi(Request* request, const string& cgiPath) {
     pid_t   pid;
     char*   args[] = {
             (char*)cgiPath.c_str(),
@@ -292,8 +290,6 @@ Response* WebSession::handleRequestByCgi(Request *request, const string& cgiPath
     int    fd_1[2];
     int    fd_2[2];
     int    exitStatus;
-
-    std::cout << args[0] << std::endl;
 
     pipe(fd_1);
     pipe(fd_2);
@@ -357,7 +353,7 @@ void WebSession::handleResponse() {
         return;
 
     Response*   response;
-    Request*    request = _requestQueue.front();
+    Request*    request = *_requestQueue.begin();
 
     _keepAlive = request->isKeepAlive();
     showDebugMessage("WebSession " + to_string(getFd()) + ": Keep alive has been set to " + to_string(_keepAlive));
@@ -383,8 +379,10 @@ void WebSession::handleResponse() {
     sendResponse(response);
 
     if (response->isFullProcessed() || request->isHandledByCgi()) {
-        delete _requestQueue.front();
-        _requestQueue.pop();
+        showDebugMessage("WebSession " + to_string(getFd())
+                                + ": Request " + to_string(request->getId()) + " has been removed from queue");
+        _requestQueue.pop_front();
+        delete request;
     }
     if (_requestQueue.empty()) {
         showDebugMessage("WebSession " + to_string(getFd()) + ": Has been processed");
@@ -399,7 +397,7 @@ void WebSession::handleResponse() {
     }
 }
 
-void WebSession::sendResponse(Response *response) { // todo: return result of sending
+void WebSession::sendResponse(Response* response) {
 
     bool send_ok;
 
@@ -419,10 +417,10 @@ void WebSession::sendResponse(Response *response) { // todo: return result of se
 
 void WebSession::handle(bool read, bool write) {
 
-    bool       needsImmediateResponse = false;
+    bool   needsImmediateResponse = false;
 
     if (!_requestQueue.empty()) {
-        auto   request = _requestQueue.front();
+        auto   request = *_requestQueue.begin();
         needsImmediateResponse = (request->getResponseCode() != 0);
     }
 
@@ -456,4 +454,4 @@ const PairList &WebSession::getCookiesList() const { return _cookies; }
 
 // 6 [GET header CRLF POST header CRLF data CRLF]         OK
 // 7 [GET hea]  [der CRLF POST header CRLF data CRLF]     OK
-// 8 [POST header CRLF d] [ata CRLF GET head] [er CRLF]
+// 8 [POST header CRLF d] [ata CRLF GET head] [er CRLF]   OK

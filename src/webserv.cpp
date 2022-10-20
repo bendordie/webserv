@@ -17,7 +17,9 @@
 #include "Utils.hpp"
 #include "global_variables.hpp"
 
-using namespace std;
+using std::cout;
+using std::cerr;
+using std::endl;
 
 void showDebugMessage(const string& message) {
 #ifdef DEBUG
@@ -27,14 +29,8 @@ void showDebugMessage(const string& message) {
 #endif
 }
 
-void waitForDebug() {
-#ifdef DEBUG
-    std::this_thread::sleep_for(std::chrono::seconds(global::DEBUG_DELAY_SEC));
-#endif
-}
-
 template <class Container>
-WebServer* findServerByPort(int port, const Container &servers) {
+WebServer* findServerByPort(int port, const Container& servers) {
 
     auto   isPortUsed = [port](WebServer* server){ return port == server->getPort(); };
     auto   result = std::find_if(servers.begin(), servers.end(), isPortUsed);
@@ -95,28 +91,22 @@ extern bool initServers(const Config &config, EventSelector *eventSelector) {
 
 int main() {
 
-    const Config   config("./cfg/config_sample");
-//    const Config*   config;
-//
-//    try {
-//        config = new Config("./cfg/config_sample");
-//    } catch (std::exception) {
-//        std::cerr << "Error: Configuration file path is invalid" << std::endl;
-//        return 1;
-//    }
+    const Config*   config;
+
+    try {
+        config = new Config("./cfg/config_sample");
+    } catch (std::exception) {
+        cerr << "Error: Configuration file path is invalid" << endl;
+        return 1;
+    }
 
     showDebugMessage("main: Configuration file has been loaded");
 
-//    cout << config.isTraitDefined(1, "location /ttt.return") << endl;
-//
-//    std::cout << config["1.server.location /ttt.return"].empty() << std::endl;
-
-//    vector<string>   envCopy = copyEnv(env);
-    EventSelector*   eventSelector = new EventSelector();
+    auto   eventSelector = new EventSelector();
 
     showDebugMessage("main: EventSelector has been created");
 
-    bool   serverInitFailed = !initServers(config, eventSelector);
+    bool   serverInitFailed = !initServers(*config, eventSelector);
     if (serverInitFailed)
         return 1;
 
@@ -124,26 +114,7 @@ int main() {
     eventSelector->run();
 
     delete eventSelector;
-//    delete config;
+    delete config;
 
     return 0;
 }
-
-
-// CGI plan:
-// 1. Проверить config на наличие параметров cgi и cgi_path для заданного location
-// 2. Если эти параметры установлены, задать необходимые параметры env
-// 3. Попытаться запустить cgi через fork
-// 4. Если открыть не удалось, прервать соединение с ошибкой 500
-// 5.
-
-
-// POST data: что делать, если файл уже существует?
-// нужно ли дозаписывать в существующий файл при наличии прав?
-
-// DELETE + body = некорректная работа основного цикла
-// POST file + localhost/file.txt = странная работа
-
-
-// убрать хардкоды и тудушки
-// куки и мульти cgi

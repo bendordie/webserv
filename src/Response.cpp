@@ -13,8 +13,8 @@
 #include "Response.hpp"
 
 // SIMPLE (DEFAULT)
-Response::Response(const string &protocol, int statusCode, bool keepAliveFlag,
-                   bool acceptEncodingFlag, const PairList& cookies, const string &redirectURL)
+Response::Response(const string& protocol, int statusCode, bool keepAliveFlag,
+                   bool acceptEncodingFlag, const PairList& cookies, const string& redirectURL)
         : HttpMessage(protocol), _statusCode(statusCode), _contentType("text/html"), _keepAliveFlag(keepAliveFlag) {
 
     showDebugMessage("Response: SIMPLE constructor");
@@ -29,9 +29,9 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag,
 
     showDebugMessage("Response: Code: " + to_string(_statusCode) + " Message: " + _statusMsg);
 
-    const string   &currentTime = Utils::getTimeInString();
-    const string   &page = makeStatusPage();
-    bool           chunked = (_protocol == "HTTP/1.1") && acceptEncodingFlag;
+    const string&   currentTime = Utils::getTimeInString();
+    const string&   page = makeStatusPage();
+    bool            chunked = (_protocol == "HTTP/1.1") && acceptEncodingFlag;
 
     _contentLength = page.size();
     makeResponseHeader(chunked, currentTime, cookies, redirectURL);
@@ -48,7 +48,7 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag,
 }
 
 // CHUNKED
-Response::Response(const string &protocol, const string &dataPath, size_t dataBytesProcessed)
+Response::Response(const string& protocol, const string& dataPath, size_t dataBytesProcessed)
     : HttpMessage(protocol), _contentType("text/html"), _dataBytesHandled(dataBytesProcessed) {
 
     showDebugMessage("Response: CHUNKED constructor");
@@ -56,7 +56,7 @@ Response::Response(const string &protocol, const string &dataPath, size_t dataBy
     if (dataPath.empty()) {
         // ???
     }
-    // 65535
+
     Utils::t_file   file = Utils::readFile(dataPath, global::FILE_READING_BUFFER_SIZE,dataBytesProcessed); // TODO: func for calculating suitable chunk size
     if (!file.data) {
         std::cerr << "Response: Reading file error" << std::endl;
@@ -70,8 +70,8 @@ Response::Response(const string &protocol, const string &dataPath, size_t dataBy
 }
 
 // FILE
-Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
-                   const string &dataPath, const map<string, string> &contentTypes, const PairList& cookies)
+Response::Response(const string& protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
+                   const string& dataPath, const map<string, string>& contentTypes, const PairList& cookies)
     : HttpMessage(protocol), _statusCode(statusCode), _dataBytesHandled(0),
       _keepAliveFlag(keepAliveFlag), _fullProcessed(false) {
 
@@ -91,7 +91,8 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, b
     Utils::t_file   file;
 
     if (!dataPath.empty()) {
-        size_t        maxBufSize = (chunked) ? 8192 : serverMaxBodySize;
+        size_t   maxBufSize = (chunked) ? 8192 : serverMaxBodySize;
+
         file = Utils::readFile(dataPath, maxBufSize, 0);
         fileTime = Utils::getFileLastModTime(dataPath);
         if (!file.data) {
@@ -122,13 +123,14 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, b
         showDebugMessage(_header);
         showDebugMessage("--------------------------------------------------");
     }
+
     delete file.data;
 }
 
 
 // RAW DATA (FOR AUTOINDEX)
-Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
-                   const char *data, size_t dataSize, string contentType, const PairList& cookies)
+Response::Response(const string& protocol, int statusCode, bool keepAliveFlag, bool acceptEncodingFlag,
+                   const char* data, size_t dataSize, string contentType, const PairList& cookies)
     : HttpMessage(protocol), _statusCode(statusCode), _contentType(contentType), _contentLength(dataSize),
     _keepAliveFlag(keepAliveFlag) {
 
@@ -158,12 +160,13 @@ Response::Response(const string &protocol, int statusCode, bool keepAliveFlag, b
         showDebugMessage(_header);
         showDebugMessage("--------------------------------------------------");
     }
+
     _fullProcessed = true;
 }
 
 Response::~Response() {}
 
-void Response::makeResponseHeader(bool HTTPv1_1, const string &fileTime,
+void Response::makeResponseHeader(bool HTTPv1_1, const string& fileTime,
                                   const PairList& cookies, const string &redirectURL) {
 
     _header.clear();
@@ -190,8 +193,7 @@ void Response::makeResponseHeader(bool HTTPv1_1, const string &fileTime,
     if (HTTPv1_1) {
         _header.append("Transfer-Encoding: chunked\r\n");
         _header.append("Accept-Ranges: bytes\r\n"); // ???
-    }
-    else
+    } else
         _header.append("Content-Length: " + to_string(_contentLength) + "\r\n");
 
     if (_statusCode / 100 == 3)
@@ -200,8 +202,8 @@ void Response::makeResponseHeader(bool HTTPv1_1, const string &fileTime,
     _header.append("\r\n");
 }
 
-Response *Response::createResponse(const WebSession *session, const Request *request, const WebServer *server,
-                                   const char *data) {
+Response *Response::createResponse(const WebSession* session, const Request* request, const WebServer* server,
+                                   const char* data) {
 
     showDebugMessage("Response: Creating response...");
 
@@ -279,41 +281,7 @@ Response *Response::createResponse(const WebSession *session, const Request *req
                        keepAliveFlag, acceptEncodingFlag, cookies);
 }
 
-// Request URL:    /
-// Location root:  /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/
-
-
-// Request URL:    /resources
-// Location root:  /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources
-
-
-// Request URL:    /directory
-// Location root:  /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/
-
-
-// Request URL:    /directory/
-// Location root:  /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/
-
-
-// Request URL:    /directory/resources
-// Location root:  /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources
-
-
-// Request URL:    /directory/resources/
-// Location root:  /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources/
-
-
-// Request URL:    /directory/resources/img/image.png
-// Location root:  /cshells/Desktop/git_webserv/www/default_site
-// Result path:    /cshells/Desktop/git_webserv/www/default_site/resources/img/image.png
-
-Response *Response::createGetResponse(const WebSession* session, const Request *request, const WebServer *server) {
+Response *Response::createGetResponse(const WebSession* session, const Request *request, const WebServer* server) {
 
     showDebugMessage("Response: Creating GET response...");
 
@@ -329,7 +297,6 @@ Response *Response::createGetResponse(const WebSession* session, const Request *
         requestedResourcePath.append("/");
 
     string            absoluteDataPath =  location->getRoot() + requestedResourcePath;
-
     list<string>      indexes = location->getIndexNames();
     bool              autoindex = location->isAutoindex();
     const PairList&   cookies = session->getCookiesList();
@@ -390,7 +357,7 @@ Response *Response::createGetResponse(const WebSession* session, const Request *
 
     size_t   bytesAlreadySent = request->getHandledDataSize();
     if (bytesAlreadySent > 0)
-        return new Response(protocol, absoluteDataPath, bytesAlreadySent); // TODO: ??? what's logic, need to check this out
+        return new Response(protocol, absoluteDataPath, bytesAlreadySent);
 
     return new Response(protocol, global::response_status::OK,
                         keepAliveFlag, acceptEncodingFlag, absoluteDataPath, contentTypes, cookies);
@@ -430,12 +397,12 @@ Response *Response::createDeleteResponse(const WebSession* session, const Reques
 
     showDebugMessage("Response: Creating DELETE response...");
 
-    const string&                protocol = request->getProtocol();
-    bool                         keepAliveFlag  = request->isKeepAlive();
-    bool                         acceptEncodingFlag = request->isAcceptEncoding();
-    const string&                url = request->getURL();
-    const Location*              location = request->getLocation();
-    const PairList&              cookies = session->getCookiesList();
+    const string&     protocol = request->getProtocol();
+    bool              keepAliveFlag  = request->isKeepAlive();
+    bool              acceptEncodingFlag = request->isAcceptEncoding();
+    const string&     url = request->getURL();
+    const Location*   location = request->getLocation();
+    const PairList&   cookies = session->getCookiesList();
 
     size_t   lastSlashPosition = url.rfind('/');
     if (lastSlashPosition == string::npos)
@@ -480,7 +447,7 @@ string Response::makeStatusPage() {
            "</html>";
 }
 
-string Response::makeAutoindexPage(const string &url, const string &abs_path) {
+string Response::makeAutoindexPage(const string& url, const string& absPath) {
 
     showDebugMessage("Response: Preparing autoindex page...");
 
@@ -495,11 +462,11 @@ string Response::makeAutoindexPage(const string &url, const string &abs_path) {
     res += url;
     res += "</h1><hr><pre><a href=\"../\">../</a>\n";
     list<struct dirent>  content;
-    Utils::getDirContent(abs_path.c_str(), content);
+    Utils::getDirContent(absPath.c_str(), content);
     for (auto it = content.begin(); it != content.end(); ++it) {
         if (!strcmp(it->d_name, ".") || !strcmp(it->d_name, ".."))
             continue;
-        res += makeAutoindexLine(it, url, abs_path);
+        res += makeAutoindexLine(it, url, absPath);
     }
     res += "</pre><hr></body>\n"
             "</html>";

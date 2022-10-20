@@ -29,29 +29,29 @@ class HttpMessage {
 
 public:
 
-    HttpMessage(const string &protocol);
+    HttpMessage(const string& protocol);
     HttpMessage(const char* rawDataBegin, const char* rawDataEnd);
     HttpMessage(const char* rawData, size_t rawDataSize);
     virtual ~HttpMessage();
 
     const string&        getProtocol() const;
-    string               getHeaderEntryValue(const string &key) const;
+    string               getHeaderEntryValue(const string& key) const;
     const char*          getData() const;
     size_t               getDataSize() const;
-    string               operator[](const string &key) const;
+    string               operator[](const string& key) const;
 
-    void                 setData(const char *begin, const char *end);
-    void                 setChunkedData(const char *begin, const char *end, bool last_chunk = false);
-    void                 appendData(const char *begin, const char *end);
-    void                 appendChunkedData(const char *begin, const char *end, bool last_chunk = false);
-    bool                 addHeaderEntry(const string &key, const string &value);
-    bool                 addHeaderEntry(const pair<string, string> &entry);
-    bool                 removeHeaderEntry(const string &key);
-    void                 setHeaderEntries(const map<string, string> &header_entries);
+    void                 setData(const char* begin, const char* end);
+    void                 setChunkedData(const char* begin, const char* end, bool lastChunk = false);
+    void                 appendData(const char* begin, const char* end);
+    void                 appendChunkedData(const char* begin, const char* end, bool lastChunk = false);
+    bool                 addHeaderEntry(const string& key, const string& value);
+    bool                 addHeaderEntry(const pair<string, string>& entry);
+    bool                 removeHeaderEntry(const string& key);
+    void                 setHeaderEntries(const map<string, string>& headerEntries);
 
-    static const char*   findMessageEnd(const char *msgBegin);
+    static const char*   findMessageEnd(const char* msgBegin);
     static string        findHttpProtocolFromBuffer(const char* bufferBegin);
-    static string        getOptionValueFromBuffer(const char *buffer, const char *optionName);
+    static string        getOptionValueFromBuffer(const char* buffer, const char* optionName);
 
 
 

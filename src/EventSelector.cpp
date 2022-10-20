@@ -77,7 +77,6 @@ void EventSelector::run() {
     _quit_flag = false;
     for (; !_quit_flag; ) {
 
-        waitForDebug();
         showDebugMessage("***************************************************************************");
         showDebugMessage("EventSelector: Max FD: " + std::to_string(_max_fd));
 
@@ -100,9 +99,8 @@ void EventSelector::run() {
             }
         }
 
-        waitForDebug();
-
         showDebugMessage("EventSelector: Selecting...");
+
         struct timeval timeout;
         bzero(&timeout, sizeof(timeout));
         timeout.tv_sec = 10;
@@ -114,9 +112,6 @@ void EventSelector::run() {
             else
                 break;
         }
-
-        waitForDebug();
-
         if (result > 0) {
             showDebugMessage("EventSelector: Selecting is done");
             for (i = 0; i <= _max_fd; ++i) {

@@ -4,7 +4,7 @@
 
 #include "Utils.hpp"
 
-vector<string> Utils::split(const string &str, char ch) {
+vector<string> Utils::split(const string& str, char ch) {
 
     vector<string>   result;
 
@@ -27,7 +27,7 @@ vector<string> Utils::split(const string &str, char ch) {
     return result;
 }
 
-vector<string> Utils::split(const string &str, const string &val) {
+vector<string> Utils::split(const string& str, const string& val) {
     vector<string>   result;
 
     if (str.empty())
@@ -65,7 +65,7 @@ string Utils::getTimeInString() {
     return tmbuf;
 }
 
-string Utils::getExtension(const string &file_name) {
+string Utils::getExtension(const string& file_name) {
     size_t   pos = file_name.rfind('.');
 
     if (pos <= 0) return "";
@@ -73,9 +73,9 @@ string Utils::getExtension(const string &file_name) {
 }
 
 bool Utils::searchFileInDir(const char* dir_path, const char* file_name) {
-    size_t			len;
-    struct dirent	*dp;
-    DIR				*dirp;
+    size_t			 len;
+    struct dirent*   dp;
+    DIR*             dirp;
 
     dirp = opendir(dir_path);
     if (dirp == NULL) {
@@ -96,13 +96,13 @@ bool Utils::searchFileInDir(const char* dir_path, const char* file_name) {
     return false;
 }
 
-bool Utils::isPathExist(const string &path) {
+bool Utils::isPathExist(const string& path) {
         struct stat   buffer;
 
         return (stat(path.c_str(), &buffer) == 0);
 }
 
-bool Utils::isPathAccessed(const string &path) {
+bool Utils::isPathAccessed(const string& path) {
     struct stat   buffer;
 
     stat(path.c_str(), &buffer);
@@ -110,7 +110,7 @@ bool Utils::isPathAccessed(const string &path) {
 }
 
 
-bool Utils::getDirContent(const char* dir_path, list<struct dirent> &content) {
+bool Utils::getDirContent(const char* dir_path, list<struct dirent>& content) {
     struct dirent*   dp;
     DIR*             dirp;
 
@@ -194,7 +194,7 @@ Utils::t_file Utils::readFile(string filePath, size_t maxBufSize, size_t bytesAl
 
 map<string, string>::const_iterator
 Utils::findKey(map<string, string>::const_iterator begin, map<string, string>::const_iterator end,
-               const string &value) {
+               const string& value) {
 
     for (; begin != end; ++begin) {
         if (value == begin->second)
@@ -203,13 +203,13 @@ Utils::findKey(map<string, string>::const_iterator begin, map<string, string>::c
     return end;
 }
 
-bool Utils::strToBool(const string &str) {
+bool Utils::strToBool(const string& str) {
     if (str == "on" || str == "1" || str == "true")
         return true;
     return false;
 }
 
-long long Utils::strToLongLong(const string &str) {
+long long Utils::strToLongLong(const string& str) {
     return stoll(str);
 }
 
@@ -222,7 +222,7 @@ string Utils::intToHexString(int value) {
     return oss.str();
 }
 
-const char *Utils::reverse_strstr(const char *source, const char *needle) {
+const char *Utils::reverse_strstr(const char* source, const char* needle) {
 
     size_t   sourceLastElem = strlen(source) - 1;
     size_t   needleLastElem = strlen(needle) - 1;

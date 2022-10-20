@@ -12,9 +12,9 @@
 
 #include "WebServer.hpp"
 
-WebServer::WebServer(EventSelector *event_selector, int port, int fd, const Config &config, int indexInConfig)
-    : FdHandler(fd, true), _port(port), _indexInConfig(indexInConfig),
-      _config(config), _eventSelector(event_selector), _timeoutSec(global::SESSION_TIMEOUT_SEC), _timeoutMutex(event_selector->getTimeoutMutex()) {
+WebServer::WebServer(EventSelector* event_selector, int port, int fd, const Config& config, int indexInConfig)
+    : FdHandler(fd, true), _port(port), _eventSelector(event_selector),
+    _timeoutSec(global::SESSION_TIMEOUT_SEC), _timeoutMutex(event_selector->getTimeoutMutex()) {
 
     _timeoutHandler = thread(&WebServer::checkSessionTimeout, this);
 
@@ -27,10 +27,6 @@ WebServer::WebServer(EventSelector *event_selector, int port, int fd, const Conf
     _eventSelector->add(this);
 }
 
-WebServer::WebServer(const WebServer &other)
-    : FdHandler(other.getFd()), _port(other._port), _indexInConfig(other._indexInConfig),
-    _config(other._config), _eventSelector(other._eventSelector), _timeoutMutex(other._timeoutMutex) {}
-
 WebServer::~WebServer() {
 
     for (auto session : _sessions) {
@@ -38,14 +34,9 @@ WebServer::~WebServer() {
     }
     _eventSelector->remove(this);
     _timeoutHandler.join();
-
-//    for (std::list<WebSession*>::iterator it = _sessions.begin(); it != _sessions.end(); ++it) {
-//        _eventSelector->remove((*it));
-//    }
-//    _eventSelector->remove(this);
 }
 
-bool WebServer::addNewVirtualServer(const Config &config, int serverIndexInConfig) {
+bool WebServer::addNewVirtualServer(const Config& config, int serverIndexInConfig) {
 
     if (!config.isOptionDefined(serverIndexInConfig, "server_name")) {
         cerr << "Error: Field server_name is not defined for Server " << serverIndexInConfig << endl;
@@ -86,7 +77,7 @@ void WebServer::checkSessionTimeout() {
     }
 }
 
-WebServer *WebServer::init(EventSelector *eventSelector, int port, const Config &config, int indexInConfig) {
+WebServer *WebServer::init(EventSelector* eventSelector, int port, const Config& config, int indexInConfig) {
 
     int                  listenSocket, option, result;
     struct sockaddr_in   addr;
@@ -135,7 +126,6 @@ void WebServer::handle(bool read, bool write) {
         return;
 
     fcntl(clientSocket, F_SETFL, O_NONBLOCK);
-    waitForDebug();
 
     auto   session = new WebSession(this, clientSocket);
     _sessions.push_front(session);
@@ -144,7 +134,7 @@ void WebServer::handle(bool read, bool write) {
     showDebugMessage("WebServer: Connection " + to_string(clientSocket) + " has been created");
 }
 
-void WebServer::removeSession(WebSession *session) {
+void WebServer::removeSession(WebSession* session) {
 
 //    this_thread::sleep_for(std::chrono::milliseconds(10));
     _eventSelector->remove(session);
@@ -232,7 +222,7 @@ void WebServer::initContentTypes() {
     _contentTypes.insert(std::make_pair("7z", "application/x-7z-compressed"));
 }
 
-const Location *WebServer::getLocation(const string &serverName, const string &url) const {
+const Location *WebServer::getLocation(const string& serverName, const string& url) const {
 
     auto   virtualServer = _virtualServers.find(serverName);
     if (virtualServer == _virtualServers.end()) {

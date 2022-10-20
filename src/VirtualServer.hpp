@@ -8,14 +8,14 @@ class VirtualServer {
 
 public:
 
-    VirtualServer(const Config &config, int serverIndexInConfig);
+    VirtualServer(const Config& config, int serverIndexInConfig);
     ~VirtualServer();
 
     const Location*   getLocation(const string& url) const;
 
 private:
 
-    void              initLocations(const Config &config, int serverIndexInConfig);
+    void              initLocations(const Config& config, int serverIndexInConfig);
 
     Location*         _defaultLocation;
     list<Location*>   _locations;

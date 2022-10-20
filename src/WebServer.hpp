@@ -48,28 +48,25 @@ class WebServer : public FdHandler {
 
 public:
 
-    WebServer(const WebServer &other);
-    ~WebServer();
+    ~WebServer() override;
 
-    static WebServer*            init(EventSelector *eventSelector, int port, const Config &config, int indexInConfig);
+    static WebServer*            init(EventSelector* eventSelector, int port, const Config& config, int indexInConfig);
 
-    void                         removeSession(WebSession *session);
+    void                         removeSession(WebSession* session);
     int                          getPort() const;
-    bool                         addNewVirtualServer(const Config &config, int serverIndexInConfig);
+    bool                         addNewVirtualServer(const Config& config, int serverIndexInConfig);
     const map<string, string>&   getContentTypes() const;
-    const Location*              getLocation(const string &serverName, const string& url) const;
+    const Location*              getLocation(const string& serverName, const string& url) const;
 
 private:
 
-    WebServer(EventSelector *eventSelector, int port, int fd, const Config &config, int indexInConfig);
+    WebServer(EventSelector* eventSelector, int port, int fd, const Config& config, int indexInConfig);
 
     void   handle(bool read, bool write) override;
     void   checkSessionTimeout();
     void   initContentTypes();
 
     int                           _port;
-    int                           _indexInConfig;
-    const Config&                 _config;
     EventSelector*                _eventSelector;
     map<string, string>           _contentTypes;
     map<string, VirtualServer*>   _virtualServers;
@@ -82,6 +79,5 @@ private:
 };
 
 void showDebugMessage(const string& message);
-void waitForDebug();
 
 #endif //WEBSERV_WEBSERVER_HPP
